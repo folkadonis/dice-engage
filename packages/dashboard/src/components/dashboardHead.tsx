@@ -20,7 +20,7 @@ export default function DashboardHead() {
   return (
     <Head>
       <title>
-        {whiteLabelConfig?.title ? whiteLabelConfig.title : "Dittofeed"}
+        {whiteLabelConfig?.title ? whiteLabelConfig.title : "Dice Engage"}
       </title>
       {whiteLabelConfig?.favicon ? (
         <link rel="icon" href={whiteLabelConfig.favicon} />

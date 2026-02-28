@@ -1,11 +1,11 @@
 version: "3.9"
 x-clickhouse-credentials: &clickhouse-credentials
-  CLICKHOUSE_USER: dittofeed
+  CLICKHOUSE_USER: diceengage
   CLICKHOUSE_PASSWORD: password
 x-backend-app-env: &backend-app-env
   <<: *clickhouse-credentials
   NODE_ENV: development
-  DATABASE_URL: "postgresql://postgres:password@postgres:5432/dittofeed?connect_timeout=60"
+  DATABASE_URL: "postgresql://postgres:password@postgres:5432/diceengage?connect_timeout=60"
   KAFKA_BROKERS: "kafka:29092"
   KAFKA_USERNAME: "admin"
   KAFKA_PASSWORD: "password"
@@ -21,7 +21,7 @@ services:
       dockerfile: ./packages/dashboard/Dockerfile
     profiles: ["apps", "apps-api", "apps-worker"]
     volumes:
-      - ./mnt:/dittofeed-mnt
+      - ./mnt:/diceengage-mnt
     ports:
       - "3000:3000"
     depends_on:
@@ -32,14 +32,14 @@ services:
     environment:
       <<: *backend-app-env
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   api:
     build:
       context: .
       dockerfile: ./packages/api/Dockerfile
     profiles: ["apps", "apps-dashboard", "apps-worker"]
     volumes:
-      - ./mnt:/dittofeed-mnt
+      - ./mnt:/diceengage-mnt
     ports:
       - "3001:3001"
     depends_on:
@@ -50,14 +50,14 @@ services:
       <<: *backend-app-env
       BOOTSTRAP_EVENTS: true
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   worker:
     build:
       context: .
       dockerfile: ./packages/worker/Dockerfile
     profiles: ["apps", "apps-dashboard", "apps-api"]
     volumes:
-      - ./mnt:/dittofeed-mnt
+      - ./mnt:/diceengage-mnt
     depends_on:
       - postgres
       - temporal
@@ -65,14 +65,14 @@ services:
     environment:
       <<: *backend-app-env
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   lite:
     build:
       context: .
       dockerfile: ./packages/lite/Dockerfile
     profiles: ["apps-lite"]
     volumes:
-      - ./mnt:/dittofeed-mnt
+      - ./mnt:/diceengage-mnt
     ports:
       - "3000:3000"
     depends_on:
@@ -84,7 +84,7 @@ services:
       DASHBOARD_URL: "http://localhost:3000"
       DASHBOARD_API_BASE: "http://localhost:3000"
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   admin-cli:
     build:
       context: .
@@ -109,7 +109,7 @@ services:
       - ./packages/lite/src:/service/packages/lite/src
       - ./packages/worker/src:/service/packages/worker/src
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   temporal:
     container_name: temporal
     depends_on:
@@ -125,7 +125,7 @@ services:
     labels:
       kompose.volume.type: configMap
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
     ports:
       - 7233:7233
     volumes:
@@ -143,7 +143,7 @@ services:
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.22.1}
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
     ports:
       - 8080:8080
   postgres:
@@ -151,14 +151,14 @@ services:
     restart: always
     environment:
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: dittofeed
+      POSTGRES_DB: diceengage
       POSTGRES_USER: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   kafka:
     image: redpandadata/redpanda:v23.1.1
     profiles: ["kafka"]
@@ -255,7 +255,7 @@ services:
     volumes:
       - kafka:/var/lib/redpanda/data
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   
   kafka-setup:
     image: redpandadata/redpanda:v23.1.1
@@ -276,7 +276,7 @@ services:
         # Set superusers (this enables authorization)
         rpk cluster config set superusers '["admin"]' --brokers kafka:29092 --api-urls http://kafka:9644
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   clickhouse-server:
     image: clickhouse/clickhouse-server:24.12.6.70-alpine
     ports:
@@ -290,7 +290,7 @@ services:
       - clickhouse_lib:/var/lib/clickhouse
       - clickhouse_log:/var/log/clickhouse-server
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     profiles: ["otel"]
@@ -306,7 +306,7 @@ services:
       - 4318:4318 # OTLP http receiver
       - 55679:55679 # zpages extension
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   zipkin:
     image: openzipkin/zipkin
     profiles: ["otel"]
@@ -314,7 +314,7 @@ services:
     ports:
       - 9411:9411
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   grafana:
     image: grafana/grafana
     profiles: ["otel"]
@@ -324,7 +324,7 @@ services:
       - ./grafana-datasource-prometheus.yaml:/etc/grafana/provisioning/datasources/grafana-datasource-prometheus.yaml
       - grafana-storage:/var/lib/grafana
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   prometheus:
     image: prom/prometheus
     profiles: ["otel"]
@@ -334,7 +334,7 @@ services:
       - ./prometheus.yaml:/etc/prometheus/prometheus.yml
       - prometheus-storage:/prometheus
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   mail-server:
     profiles: ["smtp"]
     image: mailhog/mailhog
@@ -342,7 +342,7 @@ services:
       - "1025:1025" # SMTP server
       - "8025:8025" # Web interface
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
   # Note that minio is only used for local development. In production, use any S3-compatible storage.
   blob-storage:
     image: minio/minio
@@ -356,7 +356,7 @@ services:
       - blob-storage:/data
     command: server --console-address ":9001" /data
     networks:
-      - dittofeed-network-dev
+      - diceengage-network-dev
 
 volumes:
   postgres:
@@ -368,6 +368,6 @@ volumes:
   blob-storage:
 
 networks:
-  dittofeed-network-dev:
+  diceengage-network-dev:
     driver: bridge
-    name: dittofeed-network-dev
+    name: diceengage-network-dev

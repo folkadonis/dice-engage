@@ -62,7 +62,7 @@ const WaitingRoom: NextPage<WaitingRoomProps> = function WaitingRoom({
   return (
     <>
       <Head>
-        <title>Dittofeed</title>
+        <title>Dice Engage</title>
         <meta name="description" content="Open Source Customer Engagement" />
       </Head>
       <main>
@@ -82,7 +82,7 @@ const WaitingRoom: NextPage<WaitingRoomProps> = function WaitingRoom({
             spacing={1}
           >
             <Typography sx={{ fontSize: "1.5rem" }}>
-              Thank you for signing up for Dittofeed!
+              Thank you for signing up for Dice Engage!
             </Typography>
             {!emailVerified ? (
               <Typography sx={{ fontSize: "1rem" }}>
@@ -104,7 +104,7 @@ const WaitingRoom: NextPage<WaitingRoomProps> = function WaitingRoom({
             </Stack>
             <Stack direction="row" spacing={1} sx={{ fontSize: "1rem" }}>
               <Typography variant="subtitle1">Reach out on Discord:</Typography>
-              <DiscordLink>Dittofeed Discord community</DiscordLink>
+              <DiscordLink>Dice Engage community</DiscordLink>
             </Stack>
             {signOutUrl ? (
               <Box>

@@ -42,7 +42,7 @@ function parseRawConfig(raw: RawConfig): Config {
 
   return {
     ...raw,
-    apiServiceName: raw.apiServiceName ?? "dittofeed-api",
+    apiServiceName: raw.apiServiceName ?? "dice-engage-api",
     nodeEnv,
     apiHost:
       raw.apiHost ?? (nodeEnv === "development" ? "localhost" : "0.0.0.0"),

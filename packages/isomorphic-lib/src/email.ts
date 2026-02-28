@@ -371,7 +371,7 @@ export const defaultEmailBody = `<!DOCTYPE html>
                                         bgcolor="#3498db"
                                       >
                                         <a
-                                          href="https://dittofeed.com"
+                                          href="https://diceengage.com"
                                           target="_blank"
                                           style="
                                             border: solid 1px #3498db;
@@ -513,14 +513,14 @@ export const defaultEmailBody = `<!DOCTYPE html>
                   >
                     Powered by
                     <a
-                      href="https://dittofeed.com"
+                      href="https://diceengage.com"
                       style="
                         color: #999999;
                         font-size: 12px;
                         text-align: center;
                         text-decoration: none;
                       "
-                      >Dittofeed</a
+                      >Dice Engage</a
                     >.
                   </td>
                 </tr>

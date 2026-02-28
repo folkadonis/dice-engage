@@ -25,15 +25,15 @@ export function kafka(): Kafka {
   const sasl: SASLOptions | undefined =
     kafkaUsername && kafkaPassword
       ? {
-          mechanism: kafkaSaslMechanism,
-          username: kafkaUsername,
-          password: kafkaPassword,
-        }
+        mechanism: kafkaSaslMechanism,
+        username: kafkaUsername,
+        password: kafkaPassword,
+      }
       : undefined;
 
   if (!KAFKA) {
     const kafkaConfig: KafkaConfig = {
-      clientId: "dittofeed",
+      clientId: "dice-engage",
       brokers: kafkaBrokers,
       ssl: kafkaSsl,
       sasl,
@@ -57,15 +57,15 @@ export function adminKafka(): Kafka {
   const sasl: SASLOptions | undefined =
     kafkaEnableAdminSasl && kafkaUsername && kafkaPassword
       ? {
-          mechanism: kafkaSaslMechanism,
-          username: kafkaUsername,
-          password: kafkaPassword,
-        }
+        mechanism: kafkaSaslMechanism,
+        username: kafkaUsername,
+        password: kafkaPassword,
+      }
       : undefined;
 
   if (!ADMIN_KAFKA) {
     const kafkaConfig: KafkaConfig = {
-      clientId: "dittofeed-admin",
+      clientId: "dice-engage-admin",
       brokers: kafkaBrokers,
       ssl: kafkaSsl,
       sasl,

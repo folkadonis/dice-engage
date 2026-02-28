@@ -26,7 +26,7 @@ export default function Contact() {
           <p>If you have questions or feedback, feel reach out at</p>
           <SupportEmailLink />
           <span>, or </span>
-          <DiscordLink>join the Dittofeed Discord community</DiscordLink>
+          <DiscordLink>join the Dice Engage community</DiscordLink>
           <span>!</span>
         </Box>
       </Stack>

@@ -938,7 +938,7 @@ async function removeContactFromList({
 }
 
 function segmentToListName(segmentName: string) {
-  return `Dittofeed - ${segmentName}`;
+  return `Dice Engage - ${segmentName}`;
 }
 
 export async function updateHubspotLists({

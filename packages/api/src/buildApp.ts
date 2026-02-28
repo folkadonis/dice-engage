@@ -25,7 +25,7 @@ import { BuildAppOpts } from "./types";
 
 declare module "@fastify/request-context" {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  export interface RequestContextData extends DFRequestContext {}
+  export interface RequestContextData extends DFRequestContext { }
 }
 
 export type FastifyAppOpts = FastifyHttpOptions<RawServerDefault, Logger>;
@@ -75,8 +75,8 @@ export async function registerApp(
     openapi: {
       openapi: "3.1.0",
       info: {
-        title: "Dittofeed API",
-        description: "Dittofeed API Swagger Documentation",
+        title: "Dice Engage API",
+        description: "Dice Engage API Swagger Documentation",
         version: "0.0.1",
       },
       components: {

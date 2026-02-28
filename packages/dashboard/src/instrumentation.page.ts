@@ -5,7 +5,7 @@ export async function register() {
     // TODO add request context to span
     // TODO ensure we use the lite service name when running in lite mode
     const { start } = await initOpenTelemetry({
-      serviceName: "dittofeed-dashboard",
+      serviceName: "dice-engage-dashboard",
       configOverrides: {
         "@opentelemetry/instrumentation-http": {
           ignoreIncomingPaths: ["/api"],

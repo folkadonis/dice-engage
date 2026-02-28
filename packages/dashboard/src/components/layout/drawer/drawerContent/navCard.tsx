@@ -27,7 +27,7 @@ function NavCard() {
   if (whiteLabelConfig && !whiteLabelConfig.navCardTitle) {
     return null;
   }
-  const title = whiteLabelConfig?.navCardTitle || "Dittofeed";
+  const title = whiteLabelConfig?.navCardTitle || "Dice Engage";
   const description = whiteLabelConfig
     ? whiteLabelConfig.navCardDescription ?? null
     : "Customer Engagement";

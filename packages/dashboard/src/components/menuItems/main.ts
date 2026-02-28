@@ -130,11 +130,11 @@ const menuItems: { items: MenuItemGroup[] } = {
           id: "documentation",
           title: "Documentation",
           type: "item",
-          url: "https://docs.dittofeed.com",
+          url: "https://docs.diceengage.com",
           icon: MenuBookOutlined,
           external: true,
           description:
-            "Documentation with instructions and guidelines on how to use Dittofeed.",
+            "Documentation with instructions and guidelines on how to use Dice Engage.",
         },
         {
           id: "contact",

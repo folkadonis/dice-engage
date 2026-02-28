@@ -436,8 +436,8 @@ function parseDatabaseUrl(
   const database =
     rawConfig.databaseName ??
     (rawConfig.nodeEnv === NodeEnvEnum.Test
-      ? `dittofeed_test${suffix}`
-      : `dittofeed${suffix}`);
+      ? `diceengage_test${suffix}`
+      : `diceengage${suffix}`);
   const url = new URL(
     `postgresql://${databaseUser}:${databasePassword}@${databaseHost}:${databasePort}/${database}`,
   );
@@ -517,7 +517,7 @@ function buildDashboardUrl({
   }
   return nodeEnv === NodeEnvEnum.Development || nodeEnv === NodeEnvEnum.Test
     ? "http://localhost:3000"
-    : "https://app.dittofeed.com";
+    : "https://app.diceengage.com";
 }
 
 function parseRawConfig(rawConfig: RawConfig): Config {
@@ -527,8 +527,8 @@ function parseRawConfig(rawConfig: RawConfig): Config {
   const clickhouseDatabase =
     rawConfig.clickhouseDatabase ??
     (rawConfig.nodeEnv === NodeEnvEnum.Test
-      ? `dittofeed_test${suffix}`
-      : `dittofeed${suffix}`);
+      ? `diceengage_test${suffix}`
+      : `diceengage${suffix}`);
 
   const {
     databaseUrl,
@@ -596,7 +596,7 @@ function parseRawConfig(rawConfig: RawConfig): Config {
       ? "http://blob-storage:9000"
       : blobStorageEndpoint);
 
-  const blobStorageBucket = rawConfig.blobStorageBucket ?? "dittofeed";
+  const blobStorageBucket = rawConfig.blobStorageBucket ?? "diceengage";
   const enableColdStorage = rawConfig.enableColdStorage === "true";
   const parsedConfig: Config = {
     ...rawConfig,
@@ -616,7 +616,7 @@ function parseRawConfig(rawConfig: RawConfig): Config {
       rawConfig.clickhouseHost,
       rawConfig.clickhouseProtocol,
     ),
-    clickhouseUser: rawConfig.clickhouseUser ?? "dittofeed",
+    clickhouseUser: rawConfig.clickhouseUser ?? "diceengage",
     clickhousePassword:
       rawConfig.clickhousePassword ?? DEFAULT_BACKEND_CONFIG.clickhousePassword,
     kafkaBrokers: rawConfig.kafkaBrokers
@@ -641,7 +641,7 @@ function parseRawConfig(rawConfig: RawConfig): Config {
       nonProdDefault: 1,
     }),
     userEventsTopicName:
-      rawConfig.userEventsTopicName ?? "dittofeed-user-events",
+      rawConfig.userEventsTopicName ?? "diceengage-user-events",
     temporalNamespace: rawConfig.temporalNamespace ?? "default",
     temporalConnectionTimeout: rawConfig.temporalConnectionTimeout
       ? parseInt(rawConfig.temporalConnectionTimeout)

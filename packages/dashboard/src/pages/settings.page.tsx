@@ -145,7 +145,7 @@ function copyToClipboardField({
       label: "",
       helperText,
       value,
-      onChange: () => {},
+      onChange: () => { },
       InputProps: copyInputProps({
         value,
         successNotice,
@@ -379,7 +379,7 @@ function getMenuItems(authMode: string | undefined): MenuItemGroup[] {
           title: "Public Write Key",
           type: "item",
           url: `/settings#${settingsSectionIds.writeKey}`,
-          description: "Write key used to submit user data to Dittofeed.",
+          description: "Write key used to submit user data to Dice Engage.",
           icon: Create,
         },
         {
@@ -673,24 +673,24 @@ function SegmentIoConfig() {
                   },
                   ...(isEnabled
                     ? // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                      ([
-                        {
-                          id: "shared-secret",
-                          type: "text",
-                          fieldProps: {
-                            label: "Shared Secret",
-                            placeholder: secretExists ? "••••••••••" : "",
-                            helperText:
-                              secretExists && !sharedSecret
-                                ? "Secret is already configured. Enter a new value to change it."
-                                : "Secret for validating signed request bodies from segment.",
-                            onChange: (e) => {
-                              setSharedSecret(e.target.value);
-                            },
-                            value: sharedSecret,
+                    ([
+                      {
+                        id: "shared-secret",
+                        type: "text",
+                        fieldProps: {
+                          label: "Shared Secret",
+                          placeholder: secretExists ? "••••••••••" : "",
+                          helperText:
+                            secretExists && !sharedSecret
+                              ? "Secret is already configured. Enter a new value to change it."
+                              : "Secret for validating signed request bodies from segment.",
+                          onChange: (e) => {
+                            setSharedSecret(e.target.value);
                           },
+                          value: sharedSecret,
                         },
-                      ] as FieldComponents[])
+                      },
+                    ] as FieldComponents[])
                     : []),
                 ],
               },
@@ -1048,27 +1048,27 @@ const SMTP_SECRET_FIELDS: {
   label: string;
   key: SmtpSecretKey;
 }[] = [
-  {
-    key: "host",
-    label: "SMTP host",
-    helperText: "Host of SMTP server.",
-  },
-  {
-    key: "port",
-    label: "SMTP port",
-    helperText: "Port of SMTP server.",
-  },
-  {
-    key: "username",
-    label: "SMTP Username",
-    helperText: "Username used to authenticate SMTP server.",
-  },
-  {
-    key: "password",
-    label: "SMTP Password",
-    helperText: "Password used to authenticate SMTP server.",
-  },
-];
+    {
+      key: "host",
+      label: "SMTP host",
+      helperText: "Host of SMTP server.",
+    },
+    {
+      key: "port",
+      label: "SMTP port",
+      helperText: "Port of SMTP server.",
+    },
+    {
+      key: "username",
+      label: "SMTP Username",
+      helperText: "Username used to authenticate SMTP server.",
+    },
+    {
+      key: "password",
+      label: "SMTP Password",
+      helperText: "Password used to authenticate SMTP server.",
+    },
+  ];
 
 function SmtpConfig() {
   const secretAvailability = useSecretAvailability();

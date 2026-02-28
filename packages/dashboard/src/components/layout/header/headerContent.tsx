@@ -374,7 +374,7 @@ function HeaderContent() {
       {!features.WhiteLabel ? (
         <IconButton
           component={Link}
-          href="https://github.com/dittofeed/dittofeed"
+          href="https://github.com/diceengage/diceengage"
           target="_blank"
           disableRipple
           color="secondary"

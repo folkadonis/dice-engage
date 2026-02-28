@@ -31,7 +31,7 @@ Take a look at our <a href="#" target="_blank">docs</a> for more info.
         <mj-text font-size="12px" align="center" color="#a8a8a8">
           MyCompany, Inc., 40 Rosewood Lane, New York, NY 10003<br/>
           Don't want to receive these emails? You can {% unsubscribe_link %} from them here.<br/>
-          Powered by Dittofeed.
+          Powered by Dice Engage.
         </mj-text>
       </mj-column>
     </mj-section>

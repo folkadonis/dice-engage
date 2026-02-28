@@ -1049,15 +1049,15 @@ export async function sendEmail({
   > | null =
     subscriptionGroupDetails && subscriptionGroupSecret
       ? constructUnsubscribeHeaders({
-          to,
-          from,
-          userId,
-          identifierKey,
-          subscriptionGroupSecret,
-          subscriptionGroupName: subscriptionGroupDetails.name,
-          workspaceId,
-          subscriptionGroupId: subscriptionGroupDetails.id,
-        })
+        to,
+        from,
+        userId,
+        identifierKey,
+        subscriptionGroupSecret,
+        subscriptionGroupName: subscriptionGroupDetails.name,
+        workspaceId,
+        subscriptionGroupId: subscriptionGroupDetails.id,
+      })
       : null;
 
   // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
@@ -1500,9 +1500,9 @@ export async function sendEmail({
         bcc,
         tags: messageTags
           ? Object.entries(messageTags).map(([name, value]) => ({
-              name,
-              value,
-            }))
+            name,
+            value,
+          }))
           : [],
         attachments: resendAttachments,
       };
@@ -1559,14 +1559,14 @@ export async function sendEmail({
       const postmarkAttachments: PostMarkRequiredFields["Attachments"] =
         messageTags
           ? attachments?.map(({ mimeType, data, name }) => ({
-              Name: name,
-              ContentType: mimeType,
-              Content: data,
-              ContentID: getMessageFileId({
-                messageId: messageTags.messageId,
-                name,
-              }),
-            }))
+            Name: name,
+            ContentType: mimeType,
+            Content: data,
+            ContentID: getMessageFileId({
+              messageId: messageTags.messageId,
+              name,
+            }),
+          }))
           : [];
       const fromWithName = emailName ? `${emailName} <${from}>` : from;
       const baseMetadata = R.merge(messageTags, {
@@ -1586,9 +1586,9 @@ export async function sendEmail({
         Headers:
           Object.keys(headers).length > 0
             ? Object.entries(headers).map(([name, value]) => ({
-                Name: name,
-                Value: value,
-              }))
+              Name: name,
+              Value: value,
+            }))
             : undefined,
         Metadata: metadata,
         MessageStream: emailProvider.messageStream,
@@ -1645,7 +1645,7 @@ export async function sendEmail({
 
     case EmailProviderType.MailChimp: {
       // Mandatory for Mailchimp
-      const website = getWebsiteFromFromEmail(from) ?? "https://dittofeed.com";
+      const website = getWebsiteFromFromEmail(from) ?? "https://diceengage.com";
       let mailChimpTo: MailChimpMessage["to"] = [{ email: to }];
       if (cc && cc.length > 0) {
         mailChimpTo = mailChimpTo.concat(
@@ -2199,18 +2199,18 @@ export async function sendWebhook({
 
   const parsedConfigResult: Record<string, string> = secret?.configValue
     ? schemaValidateWithErr(secret.configValue, WebhookSecret)
-        .map((c) => R.omit(c, ["type"]))
-        .mapErr((e) => {
-          logger().error(
-            {
-              ...messageTags,
-              err: e,
-            },
-            "failed to parse webhook secret",
-          );
-          return e;
-        })
-        .unwrapOr({})
+      .map((c) => R.omit(c, ["type"]))
+      .mapErr((e) => {
+        logger().error(
+          {
+            ...messageTags,
+            err: e,
+          },
+          "failed to parse webhook secret",
+        );
+        return e;
+      })
+      .unwrapOr({})
     : {};
 
   if (messageTemplateDefinition.type !== ChannelType.Webhook) {
@@ -2545,10 +2545,10 @@ export async function batchMessageUsers(
   const [subscriptionGroupData, usersResult] = await Promise.all([
     subscriptionGroupId
       ? getSubscriptionGroupsWithAssignments({
-          workspaceId,
-          subscriptionGroupIds: [subscriptionGroupId],
-          userIds,
-        })
+        workspaceId,
+        subscriptionGroupIds: [subscriptionGroupId],
+        userIds,
+      })
       : Promise.resolve([]),
 
     // Use batched getUsers to get user property assignments for all users at once
