@@ -30,12 +30,14 @@ import { db, TxQueryError, txQueryResult } from "./db";
 import {
   defaultEmailProvider as dbDefaultEmailProvider,
   defaultSmsProvider as dbDefaultSmsProvider,
+  defaultWhatsappProvider as dbDefaultWhatsappProvider,
   emailProvider as dbEmailProvider,
   messageTemplate as dbMessageTemplate,
   secret as dbSecret,
   smsProvider as dbSmsProvider,
   subscriptionGroup as dbSubscriptionGroup,
   userProperty as dbUserProperty,
+  whatsappProvider as dbWhatsappProvider,
   workspace as dbWorkspace,
 } from "./db/schema";
 import {
@@ -128,6 +130,9 @@ import {
   WebhookConfig,
   WebhookResponse,
   WebhookSecret,
+  WhatsAppProviderSecret,
+  WhatsAppProviderType,
+  WhatsappProvider,
 } from "./types";
 import { UserPropertyAssignments } from "./userProperties";
 import { getUsers } from "./users";
@@ -528,6 +533,12 @@ export type SendMessageParametersSms = SendMessageParametersBase &
     disableCallback?: boolean;
   };
 
+export type SendMessageParametersWhatsApp = SendMessageParametersBase & {
+  channel: (typeof ChannelType)["WhatsApp"];
+  providerOverride?: WhatsAppProviderType;
+  disableCallback?: boolean;
+};
+
 export interface SendMessageParametersMobilePush
   extends SendMessageParametersBase {
   channel: (typeof ChannelType)["MobilePush"];
@@ -543,7 +554,8 @@ export type SendMessageParameters =
   | SendMessageParametersEmail
   | SendMessageParametersSms
   | SendMessageParametersWebhook
-  | SendMessageParametersMobilePush;
+  | SendMessageParametersMobilePush
+  | SendMessageParametersWhatsApp;
 
 type TemplateDictionary<T> = {
   [K in keyof T]: {
@@ -649,6 +661,65 @@ async function getSmsProvider({
     return null;
   }
   return getSmsProviderForWorkspace({
+    workspaceId: parentWorkspaceId,
+    providerOverride,
+  });
+}
+
+async function getWhatsAppProviderForWorkspace({
+  providerOverride,
+  workspaceId,
+}: {
+  workspaceId: string;
+  providerOverride?: WhatsAppProviderType;
+}): Promise<(WhatsappProvider & { secret: Secret | null }) | null> {
+  if (providerOverride) {
+    const provider = await db().query.whatsappProvider.findFirst({
+      where: and(
+        eq(dbWhatsappProvider.workspaceId, workspaceId),
+        eq(dbWhatsappProvider.type, providerOverride),
+      ),
+      with: {
+        secret: true,
+      },
+    });
+    return provider ?? null;
+  }
+  const defaultProvider = await db().query.defaultWhatsappProvider.findFirst({
+    where: eq(dbDefaultWhatsappProvider.workspaceId, workspaceId),
+    with: {
+      whatsappProvider: {
+        with: {
+          secret: true,
+        },
+      },
+    },
+  });
+  return defaultProvider?.whatsappProvider ?? null;
+}
+
+async function getWhatsAppProvider({
+  providerOverride,
+  workspaceId,
+}: {
+  workspaceId: string;
+  providerOverride?: WhatsAppProviderType;
+}): Promise<(WhatsappProvider & { secret: Secret | null }) | null> {
+  const provider = await getWhatsAppProviderForWorkspace({
+    workspaceId,
+    providerOverride,
+  });
+  if (provider) {
+    return provider;
+  }
+  const workspace = await db().query.workspace.findFirst({
+    where: eq(dbWorkspace.id, workspaceId),
+  });
+  const parentWorkspaceId = workspace?.parentWorkspaceId;
+  if (!parentWorkspaceId) {
+    return null;
+  }
+  return getWhatsAppProviderForWorkspace({
     workspaceId: parentWorkspaceId,
     providerOverride,
   });
@@ -2164,6 +2235,315 @@ export async function sendSms(
   }
 }
 
+export async function sendWhatsApp(
+  params: Omit<SendMessageParametersWhatsApp, "channel">,
+): Promise<BackendMessageSendResult> {
+  const {
+    workspaceId,
+    templateId,
+    userPropertyAssignments,
+    subscriptionGroupDetails,
+    useDraft,
+    providerOverride,
+    userId,
+    messageTags,
+    disableCallback = false,
+    isPreview,
+  } = params;
+  const [getSendModelsResult, whatsappProviderResult] = await Promise.all([
+    getSendMessageModels({
+      workspaceId,
+      templateId,
+      channel: ChannelType.WhatsApp,
+      useDraft,
+      subscriptionGroupDetails,
+    }),
+    getWhatsAppProvider({
+      workspaceId,
+      providerOverride: providerOverride ?? undefined,
+    }),
+  ]);
+  if (getSendModelsResult.isErr()) {
+    return err(getSendModelsResult.error);
+  }
+  const { messageTemplateDefinition } = getSendModelsResult.value;
+
+  if (!whatsappProviderResult?.secret) {
+    return err({
+      type: InternalEventType.BadWorkspaceConfiguration,
+      variant: {
+        type: BadWorkspaceConfigurationType.MessageServiceProviderNotFound,
+      },
+    });
+  }
+  const whatsappConfig = whatsappProviderResult.secret.configValue;
+
+  const parsedConfigResult = schemaValidateWithErr(
+    whatsappConfig,
+    WhatsAppProviderSecret,
+  );
+  if (parsedConfigResult.isErr()) {
+    return err({
+      type: InternalEventType.BadWorkspaceConfiguration,
+      variant: {
+        type: BadWorkspaceConfigurationType.MessageServiceProviderMisconfigured,
+        message: parsedConfigResult.error.message,
+      },
+    });
+  }
+
+  if (messageTemplateDefinition.type !== ChannelType.WhatsApp) {
+    return err({
+      type: InternalEventType.BadWorkspaceConfiguration,
+      variant: {
+        type: BadWorkspaceConfigurationType.MessageTemplateMisconfigured,
+        message: "message template is not a whatsapp template",
+      },
+    });
+  }
+  const identifierKey =
+    messageTemplateDefinition.identifierKey ??
+    CHANNEL_IDENTIFIERS[ChannelType.Sms]; // WhatsApp uses phone numbers like SMS
+
+  const renderedValuesResult = renderValues({
+    userProperties: userPropertyAssignments,
+    identifierKey,
+    subscriptionGroupId: subscriptionGroupDetails?.id,
+    workspaceId,
+    tags: messageTags,
+    isPreview,
+    templates: {
+      body: {
+        contents: messageTemplateDefinition.body,
+      },
+    },
+  });
+
+  if (renderedValuesResult.isErr()) {
+    const { error, field } = renderedValuesResult.error;
+    return err({
+      type: InternalEventType.BadWorkspaceConfiguration,
+      variant: {
+        type: BadWorkspaceConfigurationType.MessageTemplateRenderError,
+        field,
+        error,
+      },
+    });
+  }
+
+  const rawIdentifier = userPropertyAssignments[identifierKey];
+  let identifier: string | null;
+  switch (typeof rawIdentifier) {
+    case "string":
+      identifier = rawIdentifier;
+      break;
+    case "number":
+      identifier = String(rawIdentifier);
+      break;
+    default:
+      identifier = null;
+  }
+
+  if (!identifier) {
+    return err({
+      type: InternalEventType.MessageSkipped,
+      variant: {
+        type: MessageSkippedType.MissingIdentifier,
+        identifierKey,
+      },
+    });
+  }
+
+  const body = renderedValuesResult.value.body;
+  const to = identifier;
+
+  switch (parsedConfigResult.value.type) {
+    case WhatsAppProviderType.Twilio: {
+      const {
+        accountSid,
+        messagingServiceSid,
+        authToken,
+        apiKeySid,
+        apiKeySecret,
+      } = parsedConfigResult.value;
+
+      if (!accountSid) {
+        return err({
+          type: InternalEventType.BadWorkspaceConfiguration,
+          variant: {
+            type: BadWorkspaceConfigurationType.MessageServiceProviderMisconfigured,
+            message: "twilio WhatsApp config missing accountSid",
+          },
+        });
+      }
+
+      let auth: TwilioAuth;
+      if (apiKeySid && apiKeySecret) {
+        auth = { type: "apiKey", apiKeySid, apiKeySecret };
+      } else if (authToken) {
+        auth = { type: "authToken", authToken };
+      } else {
+        return err({
+          type: InternalEventType.BadWorkspaceConfiguration,
+          variant: {
+            type: BadWorkspaceConfigurationType.MessageServiceProviderMisconfigured,
+            message: "twilio WhatsApp auth misconfigured",
+          },
+        });
+      }
+
+      // Prefix with whatsapp: for Twilio WhatsApp API
+      const waTo = to.startsWith("whatsapp:") ? to : `whatsapp:${to}`;
+      let sender: TwilioSender;
+      if (messagingServiceSid) {
+        sender = { messagingServiceSid };
+      } else {
+        return err({
+          type: InternalEventType.BadWorkspaceConfiguration,
+          variant: {
+            type: BadWorkspaceConfigurationType.MessageServiceProviderMisconfigured,
+            message: "twilio WhatsApp requires a messaging service SID",
+          },
+        });
+      }
+
+      const result = await sendSmsTwilio({
+        body,
+        accountSid,
+        auth,
+        userId,
+        subscriptionGroupId: subscriptionGroupDetails?.id,
+        to: waTo,
+        workspaceId,
+        disableCallback,
+        tags: messageTags,
+        ...sender,
+      });
+
+      if (result.isErr()) {
+        return err({
+          type: InternalEventType.MessageFailure,
+          variant: {
+            type: ChannelType.Sms,
+            provider: {
+              type: SmsProviderType.Twilio,
+              message: result.error.message,
+            },
+          },
+        });
+      }
+      return ok({
+        type: InternalEventType.MessageSent,
+        variant: {
+          type: ChannelType.Sms,
+          body,
+          to: waTo,
+          provider: {
+            type: SmsProviderType.Twilio,
+            sid: result.value.sid,
+          },
+        },
+      });
+    }
+    case WhatsAppProviderType.Gupshup: {
+      const { apikey, source, appName } = parsedConfigResult.value;
+      const url = "https://api.gupshup.io/wa/api/v1/msg";
+
+      const formBody = new URLSearchParams({
+        channel: "whatsapp",
+        source,
+        destination: to,
+        message: body,
+      });
+      if (appName) {
+        formBody.append("src.name", appName);
+      }
+
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            apikey,
+          },
+          body: formBody,
+        });
+
+        if (!response.ok) {
+          const errBody = await response.text();
+          return err({
+            type: InternalEventType.MessageFailure,
+            variant: {
+              type: ChannelType.Sms,
+              provider: {
+                type: SmsProviderType.Twilio, // reusing SMS failure shape
+                message: `Gupshup WA API error: ${response.status} ${errBody}`,
+              },
+            },
+          });
+        }
+
+        const data = await response.json();
+        if (data.status === "error") {
+          return err({
+            type: InternalEventType.MessageFailure,
+            variant: {
+              type: ChannelType.Sms,
+              provider: {
+                type: SmsProviderType.Twilio,
+                message: `Gupshup WA Error: ${JSON.stringify(data.error)}`,
+              },
+            },
+          });
+        }
+
+        return ok({
+          type: InternalEventType.MessageSent,
+          variant: {
+            type: ChannelType.Sms,
+            body,
+            to,
+            provider: {
+              type: SmsProviderType.Twilio,
+              sid: data.messageId ?? `gupshup-wa-${Date.now()}`,
+            },
+          },
+        });
+      } catch (e) {
+        return err({
+          type: InternalEventType.MessageFailure,
+          variant: {
+            type: ChannelType.Sms,
+            provider: {
+              type: SmsProviderType.Twilio,
+              message: (e as Error).message,
+            },
+          },
+        });
+      }
+    }
+    case WhatsAppProviderType.Test:
+      return ok({
+        type: InternalEventType.MessageSent,
+        variant: {
+          type: ChannelType.Sms,
+          body,
+          to,
+          provider: {
+            type: SmsProviderType.Test,
+          },
+        },
+      });
+    default:
+      return err({
+        type: InternalEventType.BadWorkspaceConfiguration,
+        variant: {
+          type: BadWorkspaceConfigurationType.MessageServiceProviderNotFound,
+        },
+      });
+  }
+}
+
 export async function sendWebhook({
   workspaceId,
   templateId,
@@ -2415,6 +2795,8 @@ export async function sendMessage(
         throw new Error("not implemented");
       case ChannelType.Webhook:
         return sendWebhook(params);
+      case ChannelType.WhatsApp:
+        return sendWhatsApp(params);
     }
   });
 }
@@ -2487,6 +2869,15 @@ export async function testTemplate(
       sendMessageParams = {
         ...baseSendMessageParams,
         providerOverride: request.provider,
+        channel: request.channel,
+        disableCallback: true,
+      };
+      break;
+    }
+    case ChannelType.WhatsApp: {
+      sendMessageParams = {
+        ...baseSendMessageParams,
+        providerOverride: request.provider as WhatsAppProviderType,
         channel: request.channel,
         disableCallback: true,
       };

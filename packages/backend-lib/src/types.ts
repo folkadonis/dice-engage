@@ -46,10 +46,15 @@ import {
   userProperty as dbUserProperty,
   userPropertyAssignment as dbUserPropertyAssignment,
   workspace as dbWorkspace,
+  userPropertyAssignment as dbUserPropertyAssignment,
+  workspace as dbWorkspace,
   workspaceMember as dbWorkspaceMember,
   workspaceMemberRole as dbWorkspaceMemberRole,
+  workspaceStatus,
   workspaceType as dbWorkspaceType,
+  workspaceType,
   writeKey as dbWriteKey,
+  whatsappProvider as dbWhatsappProvider,
 } from "./db/schema";
 
 export * from "isomorphic-lib/src/types";
@@ -94,6 +99,8 @@ export type Integration = InferSelectModel<typeof dbIntegration>;
 
 export type EmailProvider = InferSelectModel<typeof dbEmailProvider>;
 
+export type WhatsappProvider = InferSelectModel<typeof dbWhatsappProvider>;
+
 export type SmsProvider = InferSelectModel<typeof dbSmsProvider>;
 
 export type MessageTemplate = InferSelectModel<typeof dbMessageTemplate>;
@@ -114,7 +121,12 @@ export type SubscriptionManagementTemplate = InferSelectModel<
   typeof dbSubscriptionManagementTemplate
 >;
 
-export { dbJourneyStatus as JourneyStatus, dbWorkspaceType as WorkspaceType };
+export {
+  dbJourneyStatus as JourneyStatus,
+  dbWorkspaceType as WorkspaceType,
+  workspaceStatus as WorkspaceStatusDb,
+  workspaceType as WorkspaceTypeApp,
+};
 
 export type JourneyInsert = typeof dbJourney.$inferInsert;
 
@@ -239,6 +251,7 @@ export const OpenIdProfile = Type.Object({
   picture: Type.Optional(Type.String()),
   name: Type.Optional(Type.String()),
   nickname: Type.Optional(Type.String()),
+  tenantId: Type.Optional(Type.String()), // Added for multi-tenancy
 });
 
 export type OpenIdProfile = Static<typeof OpenIdProfile>;

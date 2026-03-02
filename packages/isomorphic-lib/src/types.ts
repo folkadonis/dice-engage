@@ -251,6 +251,8 @@ export enum WhatsAppProviderType {
   Test = "Test",
 }
 
+export const WhatsAppProviderTypeSchema = Type.Enum(WhatsAppProviderType);
+
 export const SubscriptionGroupResource = Type.Object({
   id: Type.String(),
   workspaceId: Type.String(),
@@ -1850,6 +1852,30 @@ export const SmsTemplateResource = Type.Composite(
 
 export type SmsTemplateResource = Static<typeof SmsTemplateResource>;
 
+export const WhatsappContents = Type.Object({
+  body: Type.String(),
+  identifierKey: Type.Optional(
+    Type.String({
+      description:
+        "Name of user property to use as recipient phone number. Defaults to 'phone' if not specified.",
+    }),
+  ),
+});
+
+export const WhatsAppTemplateResource = Type.Composite(
+  [
+    Type.Object({
+      type: Type.Literal(ChannelType.WhatsApp),
+    }),
+    WhatsappContents,
+  ],
+  {
+    description: "WhatsApp template resource",
+  },
+);
+
+export type WhatsAppTemplateResource = Static<typeof WhatsAppTemplateResource>;
+
 // Partial of AxiosRequestConfig.
 export const WebhookConfig = Type.Object({
   url: Type.Optional(Type.String()),
@@ -1889,6 +1915,7 @@ export const MessageTemplateResourceDefinition = Type.Union([
   MobilePushTemplateResource,
   EmailTemplateResource,
   SmsTemplateResource,
+  WhatsAppTemplateResource,
   WebhookTemplateResource,
 ]);
 
@@ -1914,6 +1941,7 @@ export const MessageTemplateResourceDraft = Type.Union([
   MobilePushTemplateResource,
   EmailTemplateResource,
   SmsTemplateResource,
+  WhatsAppTemplateResource,
   WebhookTemplateResource,
 ]);
 
@@ -4031,6 +4059,56 @@ export const SmsProviderSecret = Type.Union([
 ]);
 
 export type SmsProviderSecret = Static<typeof SmsProviderSecret>;
+
+export const TwilioWhatsAppSecret = Type.Object({
+  type: Type.Literal(WhatsAppProviderType.Twilio),
+  accountSid: Type.Optional(Type.String()),
+  messagingServiceSid: Type.Optional(Type.String()),
+  authToken: Type.Optional(Type.String()),
+  apiKeySid: Type.Optional(Type.String()),
+  apiKeySecret: Type.Optional(Type.String()),
+});
+export type TwilioWhatsAppSecret = Static<typeof TwilioWhatsAppSecret>;
+
+export const GupshupWhatsAppSecret = Type.Object({
+  type: Type.Literal(WhatsAppProviderType.Gupshup),
+  apikey: Type.String(),
+  source: Type.String(),
+  appName: Type.Optional(Type.String()),
+});
+export type GupshupWhatsAppSecret = Static<typeof GupshupWhatsAppSecret>;
+
+export const WhatsAppProviderSecret = Type.Union([
+  TwilioWhatsAppSecret,
+  GupshupWhatsAppSecret,
+]);
+export type WhatsAppProviderSecret = Static<typeof WhatsAppProviderSecret>;
+
+export const TwilioWhatsAppProvider = Type.Object({
+  id: Type.String(),
+  workspaceId: Type.String(),
+  type: Type.Optional(Type.Literal(WhatsAppProviderType.Twilio)),
+});
+export type TwilioWhatsAppProvider = Static<typeof TwilioWhatsAppProvider>;
+
+export const GupshupWhatsAppProvider = Type.Object({
+  id: Type.String(),
+  workspaceId: Type.String(),
+  type: Type.Optional(Type.Literal(WhatsAppProviderType.Gupshup)),
+});
+export type GupshupWhatsAppProvider = Static<typeof GupshupWhatsAppProvider>;
+
+export const PersistedWhatsAppProvider = Type.Union([
+  TwilioWhatsAppProvider,
+  GupshupWhatsAppProvider,
+]);
+export type PersistedWhatsAppProvider = Static<typeof PersistedWhatsAppProvider>;
+
+export const DefaultWhatsAppProviderResource = Type.Object({
+  workspaceId: Type.String(),
+  whatsappProviderId: Type.String(),
+});
+export type DefaultWhatsAppProviderResource = Static<typeof DefaultWhatsAppProviderResource>;
 
 export const TwilioSmsProvider = Type.Object({
   id: Type.String(),

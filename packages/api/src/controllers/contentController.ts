@@ -21,6 +21,7 @@ import { defaultEmailDefinition } from "isomorphic-lib/src/email";
 import { unwrap } from "isomorphic-lib/src/resultHandling/resultUtils";
 import { schemaValidateWithErr } from "isomorphic-lib/src/resultHandling/schemaValidation";
 import { defaultSmsDefinition } from "isomorphic-lib/src/sms";
+import { defaultWhatsappDefinition } from "isomorphic-lib/src/whatsapp";
 import { assertUnreachable } from "isomorphic-lib/src/typeAssertions";
 import {
   BadWorkspaceConfigurationType,
@@ -262,6 +263,10 @@ export default async function contentController(fastify: FastifyInstance) {
         }
         case ChannelType.Sms: {
           definition = defaultSmsDefinition();
+          break;
+        }
+        case ChannelType.WhatsApp: {
+          definition = defaultWhatsappDefinition();
           break;
         }
         case ChannelType.Webhook: {

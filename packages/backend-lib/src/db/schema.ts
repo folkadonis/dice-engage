@@ -926,6 +926,75 @@ export const smsProvider = pgTable(
   ],
 );
 
+export const defaultWhatsappProvider = pgTable(
+  "DefaultWhatsappProvider",
+  {
+    workspaceId: uuid().notNull(),
+    whatsappProviderId: uuid().notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("DefaultWhatsappProvider_workspaceId_key").using(
+      "btree",
+      table.workspaceId.asc().nullsLast().op("uuid_ops"),
+    ),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "DefaultWhatsappProvider_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.whatsappProviderId],
+      foreignColumns: [whatsappProvider.id],
+      name: "DefaultWhatsappProvider_whatsappProviderId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const whatsappProvider = pgTable(
+  "WhatsappProvider",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    workspaceId: uuid().notNull(),
+    secretId: uuid().notNull(),
+    type: text().notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("WhatsappProvider_workspaceId_type_key").using(
+      "btree",
+      table.workspaceId.asc().nullsLast().op("uuid_ops"),
+      table.type.asc().nullsLast().op("text_ops"),
+    ),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "WhatsappProvider_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.secretId],
+      foreignColumns: [secret.id],
+      name: "WhatsappProvider_secretId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
 export const journey = pgTable(
   "Journey",
   {
