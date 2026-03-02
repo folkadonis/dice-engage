@@ -80,3 +80,40 @@ If your goal is "free as possible", these are the most practical options:
 ### Important practical note
 
 For reliable production workloads, this stack usually outgrows strict free tiers because Temporal + ClickHouse + Postgres are stateful and memory/storage heavy. Use lite mode first, then scale up to paid infrastructure when usage increases.
+
+## If you want to monetize with campaigns for multiple brands
+
+If you plan to run campaigns for different client brands, use this rollout path.
+
+### Recommended deployment model
+
+1. Start with one shared platform (lowest cost)
+   - One `dashboard`/`api`/`worker` stack (or `lite` stack) serving multiple brands.
+   - Separate brands logically at the application/workspace level.
+
+2. Isolate data and secrets per brand
+   - Use per-brand API keys, sender identities, and credential sets.
+   - Keep secrets in Kubernetes Secrets and scope access by namespace/RBAC.
+
+3. Add traffic controls before paid campaigns scale
+   - Configure rate limits and queue/backpressure policies in worker processing.
+   - Reserve resources/limits per deployment to avoid one brand impacting others.
+
+4. Move heavy dependencies to managed services when revenue grows
+   - Postgres and ClickHouse are the first services to bottleneck.
+   - Keep Temporal healthy with stable storage and enough memory headroom.
+
+### Minimal production baseline for monetized usage
+
+For paid campaigns, avoid strict free-tier hosting. Run at least:
+- app: `dashboard` + `api` + `worker` (or `lite` for simpler operations)
+- data/workflows: `postgres` + `clickhouse-server` + `temporal`
+- observability: `prometheus` + `grafana` (or equivalent managed monitoring)
+
+### Multi-brand scaling strategy
+
+- Early stage: single cluster, single environment, logical tenant isolation.
+- Growth stage: separate namespaces per brand tier (or per region).
+- Enterprise stage: dedicated environment/cluster for high-volume brands.
+
+This lets you start lean, prove campaign ROI, and progressively isolate high-value customers without rebuilding the stack.
