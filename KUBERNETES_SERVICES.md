@@ -53,3 +53,31 @@ For Kubernetes, model these as:
 - ClusterIP Services for in-cluster connectivity (`postgres`, `temporal`, `clickhouse`, app services).
 - Ingress/LoadBalancer for externally exposed app endpoints (`dashboard` or `lite`, optionally `api`).
 - PersistentVolumeClaims for `postgres` and `clickhouse` data.
+
+## Free/low-cost deployment options
+
+If your goal is "free as possible", these are the most practical options:
+
+1. Local machine (fully free)
+   - Run `docker-compose.lite.yaml` on your own laptop/desktop.
+   - Best for evaluation, demos, and development.
+   - No cloud bill, but uptime depends on your machine.
+
+2. Single small VM + Docker Compose (can be free on some providers)
+   - Use `docker-compose.lite.yaml` on one Linux VM.
+   - Works well with providers that offer always-free or trial compute.
+   - Cheapest real internet-accessible setup if Kubernetes is not required.
+
+3. Single-node Kubernetes (k3s/microk8s/minikube)
+   - Run the `lite` app + Postgres + Temporal + ClickHouse on one node.
+   - Good if you specifically want Kubernetes practice with minimal cost.
+
+4. Hybrid free-tier approach
+   - Host app (`lite`) on a free web/container tier where available.
+   - Move stateful dependencies (`postgres`, `clickhouse`) to managed free tiers or your own VM.
+   - Note: free tiers often sleep, limit storage/CPU, or expire.
+
+### Important practical note
+
+For reliable production workloads, this stack usually outgrows strict free tiers because Temporal + ClickHouse + Postgres are stateful and memory/storage heavy. Use lite mode first, then scale up to paid infrastructure when usage increases.
+
