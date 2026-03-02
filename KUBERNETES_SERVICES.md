@@ -80,3 +80,4 @@ If your goal is "free as possible", these are the most practical options:
 ### Important practical note
 
 For reliable production workloads, this stack usually outgrows strict free tiers because Temporal + ClickHouse + Postgres are stateful and memory/storage heavy. Use lite mode first, then scale up to paid infrastructure when usage increases.
+
