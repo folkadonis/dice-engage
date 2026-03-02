@@ -1,0 +1,71 @@
+# Multi-Tenant Omnichannel SaaS Transformation
+
+## Phase 1 — Multi-Tenant Architecture
+- [ ] Add `tenant` table and `brand` table with migration
+- [ ] Add `tenantId` FK to [Workspace](file:///C:/Users/Folk%20Nallathambi/Documents/dt/dittofeed/packages/backend-lib/src/messaging.ts#598-629) table
+- [ ] Create tenant management CRUD in backend-lib
+- [ ] Implement tenant-scoped JWT authentication
+- [ ] Add tenant context middleware to API
+
+## Phase 2 — Channel Abstraction Layer
+- [ ] Define unified `ChannelProvider` interface
+- [ ] Create channel registry with dynamic provider selection
+- [ ] Refactor existing providers (Twilio, SES, SMTP, FCM) to implement interface
+- [ ] Add Gupshup SMS provider
+- [ ] Add Gupshup WhatsApp provider
+- [ ] Add Web Push (VAPID) provider
+- [ ] Add RCS provider with SMS fallback
+
+## Phase 3 — WhatsApp Channel Support
+- [ ] Add WhatsApp channel type to [ChannelType](file:///C:/Users/Folk%20Nallathambi/Documents/dt/dittofeed/packages/isomorphic-lib/src/types.ts#178-179) enum and `dbChannelType`
+- [ ] Create WhatsApp template management
+- [ ] Implement Twilio WhatsApp adapter
+- [ ] Implement Gupshup WhatsApp adapter
+- [ ] Add webhook endpoints for WhatsApp delivery reports
+
+## Phase 4 — Web Push Channel
+- [ ] Add Web Push channel type
+- [ ] Create VAPID key management per tenant
+- [ ] Implement Web Push provider using `web-push` library
+- [ ] Add service worker registration endpoint
+- [ ] Create push subscription storage (DB table)
+- [ ] Add dashboard UI for VAPID key management
+
+## Phase 5 — RCS Channel
+- [ ] Add RCS channel type
+- [ ] Design abstract RCS provider
+- [ ] Implement RCS message formats (text, rich_card, carousel)
+- [ ] Add automatic fallback to SMS on failure
+
+## Phase 6 — Analytics & Billing
+- [ ] Create `message_log` table with cost tracking
+- [ ] Create `billing_usage` table per tenant
+- [ ] Add billing usage increment on message send
+- [ ] Create analytics dashboard API endpoints
+- [ ] Plan system (Starter/Growth/Enterprise) with usage limits
+
+## Phase 7 — Admin Super Panel
+- [ ] Create admin panel routes (dashboard)
+- [ ] Tenant CRUD management UI
+- [ ] Plan assignment and suspension
+- [ ] Global metrics dashboard
+- [ ] Provider health monitoring
+
+## Phase 8 — Security Enhancements
+- [ ] Encrypt provider credentials with AES-256 at rest
+- [ ] Enhanced RBAC with tenant scoping
+- [ ] Per-tenant rate limiting
+- [ ] Webhook signature verification for all providers
+
+## Phase 9 — Infrastructure & Deployment
+- [ ] Update Docker Compose with new services
+- [ ] Update Helm charts for production
+- [ ] Add dead letter queue and retry logic
+- [ ] Horizontal worker scaling configuration
+- [ ] CI/CD pipeline updates
+
+## Phase 10 — Bonus Features
+- [ ] Template approval workflow
+- [ ] A/B testing for campaigns
+- [ ] Campaign scheduling
+- [ ] AI-based subject line generator

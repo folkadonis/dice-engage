@@ -72,6 +72,67 @@ export const ResourceType = Type.KeyOf(Type.Const(ResourceTypeEnum));
 
 export type ResourceType = Static<typeof ResourceType>;
 
+// Multi-tenant types
+export const TenantPlanTypeEnum = {
+  Starter: "Starter",
+  Growth: "Growth",
+  Enterprise: "Enterprise",
+} as const;
+
+export const TenantPlanType = Type.KeyOf(Type.Const(TenantPlanTypeEnum));
+export type TenantPlanType = Static<typeof TenantPlanType>;
+
+export const TenantStatusEnum = {
+  Active: "Active",
+  Suspended: "Suspended",
+  Cancelled: "Cancelled",
+} as const;
+
+export const TenantStatus = Type.KeyOf(Type.Const(TenantStatusEnum));
+export type TenantStatus = Static<typeof TenantStatus>;
+
+export const TenantResource = Type.Object({
+  id: Type.String(),
+  name: Type.String(),
+  planType: TenantPlanType,
+  status: TenantStatus,
+  createdAt: Type.String(),
+  updatedAt: Type.String(),
+});
+
+export type TenantResource = Static<typeof TenantResource>;
+
+export const UpsertTenantResource = Type.Object({
+  id: Type.Optional(Type.String()),
+  name: Type.String(),
+  planType: Type.Optional(TenantPlanType),
+  status: Type.Optional(TenantStatus),
+});
+
+export type UpsertTenantResource = Static<typeof UpsertTenantResource>;
+
+export const BrandResource = Type.Object({
+  id: Type.String(),
+  tenantId: Type.String(),
+  name: Type.String(),
+  timezone: Type.String(),
+  senderConfigJson: Type.Optional(Type.Unknown()),
+  createdAt: Type.String(),
+  updatedAt: Type.String(),
+});
+
+export type BrandResource = Static<typeof BrandResource>;
+
+export const UpsertBrandResource = Type.Object({
+  id: Type.Optional(Type.String()),
+  tenantId: Type.String(),
+  name: Type.String(),
+  timezone: Type.Optional(Type.String()),
+  senderConfigJson: Type.Optional(Type.Unknown()),
+});
+
+export type UpsertBrandResource = Static<typeof UpsertBrandResource>;
+
 export enum EventType {
   Identify = "identify",
   Track = "track",
@@ -132,6 +193,7 @@ export const ChannelType = {
   MobilePush: "MobilePush",
   Sms: "Sms",
   Webhook: "Webhook",
+  WhatsApp: "WhatsApp",
 } as const;
 
 export const EmailProviderType = {
@@ -180,6 +242,12 @@ export type ChannelType = (typeof ChannelType)[keyof typeof ChannelType];
 export enum SmsProviderType {
   Twilio = "Twilio",
   SignalWire = "SignalWire",
+  Test = "Test",
+}
+
+export enum WhatsAppProviderType {
+  Twilio = "Twilio",
+  Gupshup = "Gupshup",
   Test = "Test",
 }
 
@@ -2095,8 +2163,8 @@ export type UpsertDataSourceConfigurationResource = Static<
 
 export type DeepPartial<T> = T extends object
   ? {
-      [P in keyof T]?: DeepPartial<T[P]>;
-    }
+    [P in keyof T]?: DeepPartial<T[P]>;
+  }
   : T;
 
 export const WorkspaceStatusDbEnum = {

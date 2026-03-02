@@ -37,6 +37,7 @@ export const dbChannelType = pgEnum("DBChannelType", [
   "MobilePush",
   "Sms",
   "Webhook",
+  "WhatsApp",
 ]);
 export const dbCompletionStatus = pgEnum("DBCompletionStatus", [
   "NotStarted",
@@ -93,6 +94,67 @@ export const workspaceType = pgEnum("WorkspaceType", [
   "Child",
   "Parent",
 ]);
+export const tenantStatus = pgEnum("TenantStatus", [
+  "Active",
+  "Suspended",
+  "Cancelled",
+]);
+export const tenantPlanType = pgEnum("TenantPlanType", [
+  "Starter",
+  "Growth",
+  "Enterprise",
+]);
+
+export const tenant = pgTable(
+  "Tenant",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    name: text().notNull(),
+    planType: tenantPlanType().default("Starter").notNull(),
+    status: tenantStatus().default("Active").notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("Tenant_name_key").using(
+      "btree",
+      table.name.asc().nullsLast().op("text_ops"),
+    ),
+  ],
+);
+
+export const brand = pgTable(
+  "Brand",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    tenantId: uuid().notNull(),
+    name: text().notNull(),
+    timezone: text().default("UTC").notNull(),
+    senderConfigJson: jsonb(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("Brand_tenantId_name_key").using(
+      "btree",
+      table.tenantId.asc().nullsLast().op("uuid_ops"),
+      table.name.asc().nullsLast().op("text_ops"),
+    ),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "Brand_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
 
 export const workspace = pgTable(
   "Workspace",
@@ -109,6 +171,8 @@ export const workspace = pgTable(
     externalId: text(),
     parentWorkspaceId: uuid(),
     status: workspaceStatus().default("Active").notNull(),
+    tenantId: uuid(),
+    brandId: uuid(),
   },
   (table) => [
     unique("Workspace_parentWorkspaceId_externalId_key").on(
@@ -118,6 +182,20 @@ export const workspace = pgTable(
     unique("Workspace_parentWorkspaceId_name_key")
       .on(table.parentWorkspaceId, table.name)
       .nullsNotDistinct(),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "Workspace_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+    foreignKey({
+      columns: [table.brandId],
+      foreignColumns: [brand.id],
+      name: "Workspace_brandId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
   ],
 );
 

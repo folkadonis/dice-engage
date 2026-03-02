@@ -26,6 +26,7 @@ import authController from "../controllers/singleTenantController";
 import subscriptionGroupsController from "../controllers/subscriptionGroupsController";
 import subscriptionManagementController from "../controllers/subscriptionManagementController";
 import subscriptionManagementTemplateController from "../controllers/subscriptionManagementTemplateController";
+import tenantsController from "../controllers/tenantsController";
 import userPropertiesController from "../controllers/userPropertiesController";
 import userPropertyIndexController from "../controllers/userPropertyIndexController";
 import usersController from "../controllers/usersController";
@@ -139,6 +140,7 @@ export default async function router(
           prefix: "/computed-properties",
         }),
         f.register(analysisController, { prefix: "/analysis" }),
+        f.register(tenantsController, { prefix: "/tenants" }),
       ]);
     },
     { prefix: "/api/admin" },

@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm/relations";
 
 import {
   adminApiKey,
+  brand,
   broadcast,
   componentConfiguration,
   computedPropertyPeriod,
@@ -20,6 +21,7 @@ import {
   segmentIoConfiguration,
   smsProvider,
   subscriptionGroup,
+  tenant,
   userProperty,
   userPropertyAssignment,
   workspace,
@@ -31,6 +33,19 @@ import {
   writeKey,
 } from "./schema";
 
+export const tenantRelations = relations(tenant, ({ many }) => ({
+  brands: many(brand),
+  workspaces: many(workspace),
+}));
+
+export const brandRelations = relations(brand, ({ one, many }) => ({
+  tenant: one(tenant, {
+    fields: [brand.tenantId],
+    references: [tenant.id],
+  }),
+  workspaces: many(workspace),
+}));
+
 export const segmentIoConfigurationRelations = relations(
   segmentIoConfiguration,
   ({ one }) => ({
@@ -41,7 +56,15 @@ export const segmentIoConfigurationRelations = relations(
   }),
 );
 
-export const workspaceRelations = relations(workspace, ({ many }) => ({
+export const workspaceRelations = relations(workspace, ({ one, many }) => ({
+  tenant: one(tenant, {
+    fields: [workspace.tenantId],
+    references: [tenant.id],
+  }),
+  brand: one(brand, {
+    fields: [workspace.brandId],
+    references: [brand.id],
+  }),
   segmentIoConfigurations: many(segmentIoConfiguration),
   userProperties: many(userProperty),
   userPropertyAssignments: many(userPropertyAssignment),
