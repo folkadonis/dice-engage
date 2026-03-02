@@ -15,9 +15,9 @@
   <a href="https://app.dittofeed.com/dashboard">Start Cloud Trial</a> | <a href="https://docs.dittofeed.com/introduction">Docs</a> | <a href="https://discord.gg/HajPkCG4Mm">Discord</a> | <a href="https://docs.dittofeed.com/contributing/running-locally">Contributing</a>
 </p>
 
-[Dittofeed](https://dittofeed.com) is an omni-channel customer engagement platform. Send broadcasts or create automated user journeys to message users along any channel: email, mobile push notifications, SMS, WhatsApp, Slack, and more. We're an open source, dev-friendly alternative to platforms like OneSignal, Customer.io, and Segment Engage.
+[Dice Engage](https://dittofeed.com) is an omni-channel customer engagement platform. Send broadcasts or create automated user journeys to message users along any channel: email, mobile push notifications, SMS, WhatsApp, Slack, and more. We're an open source, dev-friendly alternative to platforms like OneSignal, Customer.io, and Segment Engage.
 
-- 1️⃣ Connect user data via Segment, Reverse ETL, or the Dittofeed API ⛓️
+- 1️⃣ Connect user data via Segment, Reverse ETL, or the Dice Engage API ⛓️
 - 2️⃣ Create highly customizable user segments with multiple operators 🧍🏽‍♀️🧍🏻‍♂️🧍🏾
 - 3️⃣ Design messaging templates using HTML/MJML, or our low-code editor 👨🏻‍🎨
 - 4️⃣ Send one-off broadcasts or automated event-based journeys with an easy-to-use GUI interface 🛩️
@@ -32,7 +32,7 @@
 <br>
 
 <a href="https://dittofeed.com/">
-  <img src="https://storage.googleapis.com/dittofeed-public/dittofeed-github_banner_v2.png" alt="Dittofeed Github Banner" />
+  <img src="https://storage.googleapis.com/dittofeed-public/dittofeed-github_banner_v2.png" alt="Dice Engage Github Banner" />
 </a>
 
 <br>
@@ -71,7 +71,7 @@ Check out our [walkthrough video](https://youtu.be/kZbDvVCylVg?si=Gt7xbcQ-_hk6fq
 
 ## Quick Deployment
 
-Click Deploy to Render below and follow the prompts to deploy Dittofeed on Render. See the "Self-Host with Render" [docs for more info](https://docs.dittofeed.com/deployment/self-hosted/render).
+Click Deploy to Render below and follow the prompts to deploy Dice Engage on Render. See the "Self-Host with Render" [docs for more info](https://docs.dittofeed.com/deployment/self-hosted/render).
 
 <a href="https://render.com/deploy?repo=https://github.com/dittofeed/dittofeed" target="_blank" rel="nofollow"><img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy To Render"></a>
 
@@ -115,7 +115,7 @@ Click Deploy to Render below and follow the prompts to deploy Dittofeed on Rende
 | Feature                      | Purpose                                                                                                         | Status  |
 |------------------------------|-----------------------------------------------------------------------------------------------------------------|---------|
 | LLM integration                        | Drive quicker, easier generation of journeys, segments, and templates.                                | - \[ ]  |
-| Stripe integration                     | Sync customer data between Stripe and Dittofeed.                                                      | - \[ ]  |
+| Stripe integration                     | Sync customer data between Stripe and Dice Engage.                                                      | - \[ ]  |
 | Git-based resources & campaign testing | Track changes, audit, and transfer resources between workspaces. Test journeys in CI.                 | - \[ ]  |
 
 ---
@@ -143,7 +143,7 @@ If you're interested in trying us out, please get in touch!
 
 ## Contributing
 
-For instructions on how to run Dittofeed locally and contribute to this project, see Dittofeed's [contributing docs](https://docs.dittofeed.com/contributing/).
+For instructions on how to run Dice Engage locally and contribute to this project, see Dice Engage's [contributing docs](https://docs.dittofeed.com/contributing/).
 
 ## License
 
