@@ -28,6 +28,9 @@ export function messageTemplatePath({
     case ChannelType.Webhook:
       channelSubPath = "webhook";
       break;
+    case ChannelType.WhatsApp:
+      channelSubPath = "whatsapp";
+      break;
     default:
       assertUnreachable(channel);
   }

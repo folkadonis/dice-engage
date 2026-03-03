@@ -41,11 +41,11 @@ export enum DataSources {
 }
 
 export const SMS_PROVIDER_TYPE_TO_SECRET_NAME: Record<SmsProviderType, string> =
-  {
-    [SmsProviderType.Twilio]: SecretNames.Twilio,
-    [SmsProviderType.SignalWire]: SecretNames.SignalWire,
-    [SmsProviderType.Test]: SecretNames.SmsTestProvider,
-  };
+{
+  [SmsProviderType.Twilio]: SecretNames.Twilio,
+  [SmsProviderType.SignalWire]: SecretNames.SignalWire,
+  [SmsProviderType.Test]: SecretNames.SmsTestProvider,
+};
 
 export const EMAIL_PROVIDER_TYPE_TO_SECRET_NAME: Record<
   WorkspaceWideEmailProviders,
@@ -65,6 +65,7 @@ export const CHANNEL_NAMES: Record<ChannelType, string> = {
   [ChannelType.Email]: "Email",
   [ChannelType.MobilePush]: "Push Notification",
   [ChannelType.Webhook]: "Webhook",
+  [ChannelType.WhatsApp]: "WhatsApp",
 };
 
 export const DAY_INDICES = [0, 1, 2, 3, 4, 5, 6] as const;
@@ -79,14 +80,30 @@ export const MESSAGE_EVENTS = [
   InternalEventType.MessageFailure,
   InternalEventType.MessageSkipped,
   InternalEventType.BadWorkspaceConfiguration,
+  // Email
   InternalEventType.EmailDelivered,
   InternalEventType.EmailOpened,
   InternalEventType.EmailClicked,
   InternalEventType.EmailDropped,
   InternalEventType.EmailBounced,
   InternalEventType.EmailMarkedSpam,
+  // SMS
   InternalEventType.SmsDelivered,
   InternalEventType.SmsFailed,
+  InternalEventType.SmsClicked,
+  // WhatsApp
+  InternalEventType.WhatsAppDelivered,
+  InternalEventType.WhatsAppRead,
+  InternalEventType.WhatsAppReplied,
+  InternalEventType.WhatsAppFailed,
+  // Push
+  InternalEventType.PushDelivered,
+  InternalEventType.PushClicked,
+  InternalEventType.PushDismissed,
+  InternalEventType.PushFailed,
+  // Webhook
+  InternalEventType.WebhookDelivered,
+  InternalEventType.WebhookFailed,
 ];
 
 export enum SourceType {

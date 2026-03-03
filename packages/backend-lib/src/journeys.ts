@@ -340,13 +340,13 @@ export async function getJourneyMessageStats({
             WHERE
                 workspace_id = ${qb.addQueryValue(workspaceId, "String")}
                 AND journey_id in ${qb.addQueryValue(
-                  journeyIds,
-                  "Array(String)",
-                )}
+    journeyIds,
+    "Array(String)",
+  )}
                 AND (event in ${qb.addQueryValue(
-                  MESSAGE_EVENTS,
-                  "Array(String)",
-                )})
+    MESSAGE_EVENTS,
+    "Array(String)",
+  )})
             GROUP BY
                 journey_id,
                 node_id,
@@ -449,6 +449,9 @@ export async function getJourneyMessageStats({
         }
         case ChannelType.Webhook: {
           // TODO [DF-471]
+          continue;
+        }
+        case ChannelType.WhatsApp: {
           continue;
         }
         default:
@@ -1107,7 +1110,7 @@ export async function upsertJourney(
         journey.status === JourneyResourceStatusEnum.Running &&
         priorDefinition.isOk() &&
         priorDefinition.value.entryNode.type ===
-          JourneyNodeType.SegmentEntryNode
+        JourneyNodeType.SegmentEntryNode
       )
     ) {
       const segment = await findSegmentResource({

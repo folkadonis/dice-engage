@@ -37,7 +37,11 @@ export function parseCSV(csvContent: string): ParsedCSVResult {
         return { recipients: [], duplicatesRemoved: 0, errors: ["CSV must have a header row and at least one data row"] };
     }
 
-    const headers = lines[0].toLowerCase().split(",").map((h) => h.trim());
+    const headerLine = lines[0];
+    if (!headerLine) {
+        return { recipients: [], duplicatesRemoved: 0, errors: ["CSV must have a header row"] };
+    }
+    const headers = headerLine.toLowerCase().split(",").map((h) => h.trim());
     const emailIdx = headers.indexOf("email");
     const phoneIdx = headers.indexOf("phone");
     const firstNameIdx = headers.indexOf("firstname");
@@ -53,7 +57,9 @@ export function parseCSV(csvContent: string): ParsedCSVResult {
     const errors: string[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-        const cols = lines[i].split(",").map((c) => c.trim());
+        const line = lines[i];
+        if (!line) continue;
+        const cols = line.split(",").map((c) => c.trim());
         const email = emailIdx !== -1 ? cols[emailIdx] : undefined;
         const phone = phoneIdx !== -1 ? cols[phoneIdx] : undefined;
 
@@ -136,6 +142,10 @@ export async function createAdhocList(input: CreateAdhocListInput) {
             savedForReuse: savedForReuse ?? false,
         })
         .returning();
+
+    if (!list) {
+        throw new Error("Failed to create ad-hoc list");
+    }
 
     // Insert recipients in batches of 500
     const BATCH_SIZE = 500;

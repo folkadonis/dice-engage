@@ -35,11 +35,20 @@ import {
   WorkspaceTypeAppEnum,
 } from "./types";
 
+const SESSION_KEY = "x-df-session";
+
+function isProfileEmailVerified(profile: OpenIdProfile): boolean {
+  if (typeof profile.email_verified === "boolean") {
+    return profile.email_verified;
+  }
+  return profile.email_verified === "true";
+}
+
 interface RolesWithWorkspace {
   workspace:
   | (WorkspaceResource & {
-    status: WorkspaceStatusDb;
-    type: WorkspaceTypeApp;
+    status: typeof WorkspaceStatusDb.enumValues[number];
+    type: typeof WorkspaceTypeApp.enumValues[number];
     parentWorkspaceId: string | null;
   })
   | null;

@@ -46,8 +46,6 @@ import {
   userProperty as dbUserProperty,
   userPropertyAssignment as dbUserPropertyAssignment,
   workspace as dbWorkspace,
-  userPropertyAssignment as dbUserPropertyAssignment,
-  workspace as dbWorkspace,
   workspaceMember as dbWorkspaceMember,
   workspaceMemberRole as dbWorkspaceMemberRole,
   workspaceStatus,

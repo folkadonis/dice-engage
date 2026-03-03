@@ -116,7 +116,7 @@ export async function bootstrapPostgres({
 }: {
   workspaceName: string;
   workspaceDomain?: string;
-  workspaceType?: WorkspaceTypeApp;
+  workspaceType?: typeof WorkspaceTypeApp.enumValues[number];
   workspaceExternalId?: string;
   features?: Features;
   existingWorkspace?: Workspace;
@@ -179,105 +179,105 @@ export async function bootstrapPostgres({
     typeof dbUserProperty.$inferInsert,
     "id" | "createdAt" | "updatedAt" | "definitionUpdatedAt"
   >[] = [
-    {
-      name: "id",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Id,
+      {
+        name: "id",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Id,
+        },
+        exampleValue: '"62b44d22-0d14-48bb-80d9-fb5da5b26a0c"',
       },
-      exampleValue: '"62b44d22-0d14-48bb-80d9-fb5da5b26a0c"',
-    },
-    {
-      name: "anonymousId",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.AnonymousId,
+      {
+        name: "anonymousId",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.AnonymousId,
+        },
+        exampleValue: '"b8fa9198-6475-4b18-bb64-aafd0c8b717e"',
       },
-      exampleValue: '"b8fa9198-6475-4b18-bb64-aafd0c8b717e"',
-    },
-    {
-      name: "email",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "email",
+      {
+        name: "email",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "email",
+        },
+        exampleValue: '"name@email.com"',
       },
-      exampleValue: '"name@email.com"',
-    },
-    {
-      name: "phone",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "phone",
+      {
+        name: "phone",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "phone",
+        },
+        exampleValue: '"8885551234"',
       },
-      exampleValue: '"8885551234"',
-    },
-    {
-      name: "deviceToken",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "deviceToken",
+      {
+        name: "deviceToken",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "deviceToken",
+        },
+        exampleValue:
+          '"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"',
       },
-      exampleValue:
-        '"1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"',
-    },
-    {
-      name: "firstName",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "firstName",
+      {
+        name: "firstName",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "firstName",
+        },
+        exampleValue: '"Matt"',
       },
-      exampleValue: '"Matt"',
-    },
-    {
-      name: "lastName",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "lastName",
+      {
+        name: "lastName",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "lastName",
+        },
+        exampleValue: '"Smith"',
       },
-      exampleValue: '"Smith"',
-    },
-    {
-      name: "language",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "language",
+      {
+        name: "language",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "language",
+        },
+        exampleValue: '"en-US"',
       },
-      exampleValue: '"en-US"',
-    },
-    {
-      name: "accountManager",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "accountManager",
+      {
+        name: "accountManager",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "accountManager",
+        },
+        exampleValue: '"jane.johnson@example.com"',
       },
-      exampleValue: '"jane.johnson@example.com"',
-    },
-    {
-      name: "latLon",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "latLon",
+      {
+        name: "latLon",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "latLon",
+        },
+        exampleValue: "33.812511,-117.9189762",
       },
-      exampleValue: "33.812511,-117.9189762",
-    },
-    {
-      name: "timezone",
-      workspaceId,
-      definition: {
-        type: UserPropertyDefinitionType.Trait,
-        path: "timezone",
+      {
+        name: "timezone",
+        workspaceId,
+        definition: {
+          type: UserPropertyDefinitionType.Trait,
+          path: "timezone",
+        },
+        exampleValue: '"America/New_York"',
       },
-      exampleValue: '"America/New_York"',
-    },
-  ];
+    ];
   if (userPropertyAllowList) {
     userProperties = userProperties.filter((up) =>
       userPropertyAllowList.has(up.name),
@@ -332,23 +332,23 @@ export async function bootstrapPostgres({
     }),
     testEmailProvider
       ? insert({
-          table: dbDefaultEmailProvider,
-          values: {
-            workspaceId,
-            emailProviderId: testEmailProvider.id,
-          },
-          doNothingOnConflict: true,
-        }).then(unwrap)
+        table: dbDefaultEmailProvider,
+        values: {
+          workspaceId,
+          emailProviderId: testEmailProvider.id,
+        },
+        doNothingOnConflict: true,
+      }).then(unwrap)
       : undefined,
     testSmsProvider
       ? insert({
-          table: dbDefaultSmsProvider,
-          values: {
-            workspaceId,
-            smsProviderId: testSmsProvider.id,
-          },
-          doNothingOnConflict: true,
-        }).then(unwrap)
+        table: dbDefaultSmsProvider,
+        values: {
+          workspaceId,
+          smsProviderId: testSmsProvider.id,
+        },
+        doNothingOnConflict: true,
+      }).then(unwrap)
       : undefined,
   ]);
   const writeKey = writeKeyToHeader({
@@ -507,7 +507,7 @@ export async function bootstrapComputeProperties({
 
 export interface BootstrapWorkspaceParams {
   workspaceName: string;
-  workspaceType: WorkspaceTypeApp;
+  workspaceType: typeof WorkspaceTypeApp.enumValues[number];
   workspaceDomain?: string;
   features?: Features;
 }
@@ -528,7 +528,7 @@ export async function bootstrapWorkspace({
     logger().error({ err: workspace.error }, "Failed to bootstrap workspace.");
     throw new Error("Failed to bootstrap workspace.");
   }
-  if (workspaceType === WorkspaceTypeApp.Parent) {
+  if (workspaceType === "Parent") {
     logger().info(
       "Parent workspace created, skipping remaining bootstrap steps.",
     );
@@ -677,7 +677,7 @@ export default async function bootstrap(
 export interface BootstrapWithoutDefaultsParams {
   workspaceName?: string;
   workspaceDomain?: string;
-  workspaceType?: WorkspaceTypeApp;
+  workspaceType?: typeof WorkspaceTypeApp.enumValues[number];
   features?: string;
 }
 
