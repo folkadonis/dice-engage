@@ -1,11 +1,11 @@
 databases:
-  - name: dittofeed-db
+  - name: dice-engage-db
 
 envVarGroups:
   - name: clickhouse-credentials
     envVars:
       - key: CLICKHOUSE_USER
-        value: dittofeed
+        value: diceengage
       - key: CLICKHOUSE_PASSWORD
         generateValue: true
   - name: backend-app-env
@@ -32,7 +32,7 @@ envVarGroups:
       value: postgresql
 services:
   - type: web
-    name: dittofeed-lite
+    name: dice-engage-lite
     runtime: image
     autoDeploy: false
     image:
@@ -52,24 +52,24 @@ services:
         value: "10"
       - key: DATABASE_HOST
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: host
       - key: DATABASE_USER
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: user
       - key: DATABASE_PORT
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: port
       - key: DATABASE_PASSWORD
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: password
       - key: CLICKHOUSE_HOST
         fromService:
           type: pserv
-          name: dittofeed-ch
+          name: dice-engage-ch
           property: host
       - key: TEMPORAL_ADDRESS
         fromService:
@@ -95,24 +95,24 @@ services:
       - fromGroup: clickhouse-credentials
       - key: DATABASE_HOST
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: host
       - key: DATABASE_USER
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: user
       - key: DATABASE_PORT
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: port
       - key: DATABASE_PASSWORD
         fromDatabase:
-          name: dittofeed-db
+          name: dice-engage-db
           property: password
       - key: CLICKHOUSE_HOST
         fromService:
           type: pserv
-          name: dittofeed-ch
+          name: dice-engage-ch
           property: host
       - key: TEMPORAL_ADDRESS
         fromService:
@@ -120,7 +120,7 @@ services:
           name: temporal
           property: host
   - type: pserv
-    name: dittofeed-ch
+    name: dice-engage-ch
     env: docker
     plan: standard
     autoDeploy: false
@@ -144,21 +144,21 @@ services:
       value: 7233
     - key: DBNAME
       fromDatabase:
-        name: dittofeed-db
+        name: dice-engage-db
         property: database
     - key: DB_PORT
       fromDatabase:
-        name: dittofeed-db
+        name: dice-engage-db
         property: port
     - key: POSTGRES_USER
       fromDatabase:
-        name: dittofeed-db
+        name: dice-engage-db
         property: user
     - key: POSTGRES_PWD
       fromDatabase:
-        name: dittofeed-db
+        name: dice-engage-db
         property: password
     - key: POSTGRES_SEEDS
       fromDatabase:
-        name: dittofeed-db
+        name: dice-engage-db
         property: host

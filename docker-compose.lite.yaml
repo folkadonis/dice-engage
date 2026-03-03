@@ -3,7 +3,7 @@ x-database-credentials: &database-credentials
   DATABASE_USER: ${DATABASE_USER:-postgres}
   DATABASE_PASSWORD: ${DATABASE_PASSWORD:-password}
 x-clickhouse-credentials: &clickhouse-credentials
-  CLICKHOUSE_USER: ${CLICKHOUSE_USER:-dittofeed}
+  CLICKHOUSE_USER: ${CLICKHOUSE_USER:-diceengage}
   CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-password}
 x-backend-app-env: &backend-app-env
   <<: [*clickhouse-credentials, *database-credentials]
@@ -42,8 +42,8 @@ services:
     # env_file:
     #   - .env
     networks:
-      - dittofeed-network-lite
-  # useful for upgrading dittofeed
+      - dice-engage-network-lite
+  # useful for upgrading dice-engage
   admin-cli:
     image: dittofeed/dittofeed-admin-cli:${IMAGE_TAG:-v0.23.0}
     entrypoint: []
@@ -62,7 +62,7 @@ services:
     # env_file:
     #   - .env
     networks:
-      - dittofeed-network-lite
+      - dice-engage-network-lite
   temporal:
     container_name: temporal
     restart: always
@@ -84,7 +84,7 @@ services:
     labels:
       kompose.volume.type: configMap
     networks:
-      - dittofeed-network-lite
+      - dice-engage-network-lite
     ports:
       - 7233:7233
     volumes:
@@ -102,7 +102,7 @@ services:
       - TEMPORAL_CORS_ORIGINS=http://localhost:3000
     image: temporalio/ui:${TEMPORAL_UI_VERSION:-2.22.1}
     networks:
-      - dittofeed-network-lite
+      - dice-engage-network-lite
     ports:
       - 8080:8080
   postgres:
@@ -113,13 +113,13 @@ services:
     environment:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-password}
       - POSTGRES_USER=${DATABASE_USER:-postgres}
-      - POSTGRES_DB=dittofeed
+      - POSTGRES_DB=diceengage
     ports:
       - "5432:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
-      - dittofeed-network-lite
+      - dice-engage-network-lite
   clickhouse-server:
     image: clickhouse/clickhouse-server:24.12.6.70-alpine
     restart: always
@@ -139,7 +139,7 @@ services:
       - clickhouse_lib:/var/lib/clickhouse
       - clickhouse_log:/var/log/clickhouse-server
     networks:
-      - dittofeed-network-lite
+      - dice-engage-network-lite
   # Note that minio is only used for local development. In production, use any S3-compatible storage.
   blob-storage:
     image: minio/minio
@@ -162,6 +162,6 @@ volumes:
   blob-storage:
 
 networks:
-  dittofeed-network-lite:
+  dice-engage-network-lite:
     driver: bridge
-    name: dittofeed-network-lite
+    name: dice-engage-network-lite
