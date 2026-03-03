@@ -1193,7 +1193,134 @@ Admin Panel ──▶ Review all tenant health
 
 ---
 
-## Page Index (All 24 Pages)
+## 25. Ad-hoc Lists & Quick Send (New Feature)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Broadcasts > Ad-hoc Send                    [+ New Ad-hoc Send]│
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Step 1: Add Recipients                                         │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ Source: [● Upload CSV  ○ Manual Entry  ○ Paste List]      │  │
+│  │                                                           │  │
+│  │ ┌─ CSV Upload ──────────────────────────────────────────┐ │  │
+│  │ │  [📁 Choose File]  or drag & drop                     │ │  │
+│  │ │                                                       │ │  │
+│  │ │  Required columns: email OR phone (at least one)      │ │  │
+│  │ │  Optional columns: firstName, lastName, any custom    │ │  │
+│  │ │                                                       │ │  │
+│  │ │  Template: [📥 Download CSV Template]                 │ │  │
+│  │ └───────────────────────────────────────────────────────┘ │  │
+│  │                                                           │  │
+│  │ ┌─ OR Manual Entry ─────────────────────────────────────┐ │  │
+│  │ │  [+ Add Recipient]                                    │ │  │
+│  │ │  ┌────────────────┬───────────────┬──────────────┐    │ │  │
+│  │ │  │ Email          │ Phone         │ Name         │    │ │  │
+│  │ │  ├────────────────┼───────────────┼──────────────┤    │ │  │
+│  │ │  │ john@acme.com  │ +1234567890   │ John Doe     │    │ │  │
+│  │ │  │ sara@beta.io   │ +0987654321   │ Sara Smith   │    │ │  │
+│  │ │  │ [            ] │ [           ] │ [          ] │    │ │  │
+│  │ │  └────────────────┴───────────────┴──────────────┘    │ │  │
+│  │ └───────────────────────────────────────────────────────┘ │  │
+│  │                                                           │  │
+│  │ ┌─ OR Paste List ──────────────────────────────────────┐  │  │
+│  │ │  Paste emails/phones, one per line:                   │  │  │
+│  │ │  ┌─────────────────────────────────────────────────┐  │  │  │
+│  │ │  │ john@acme.com                                   │  │  │  │
+│  │ │  │ sara@beta.io                                    │  │  │  │
+│  │ │  │ +1234567890                                     │  │  │  │
+│  │ │  └─────────────────────────────────────────────────┘  │  │  │
+│  │ └───────────────────────────────────────────────────────┘  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Preview: 47 recipients loaded   [3 duplicates removed]         │
+│                                                                 │
+│  Step 2: Choose Channel & Template                              │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ Channel:  [Email ▼]     Template: [Flash Sale v2 ▼]      │  │
+│  │ Schedule: [● Send Now   ○ Schedule for later]             │  │
+│  └───────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Step 3: Review & Send                                          │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ Recipients:  47                                           │  │
+│  │ Channel:     📧 Email                                     │  │
+│  │ Template:    Flash Sale v2                                │  │
+│  │ Timing:      Immediately                                  │  │
+│  │ Est. Cost:   $0.05 (47 × $0.001/email)                    │  │
+│  │                                                           │  │
+│  │ ☑ Save as reusable list: [Flash Sale March ___]           │  │
+│  │                                                           │  │
+│  │         [◀ Back]              [Send Now]                  │  │
+│  └───────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 26. Saved Lists
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Broadcasts > Saved Lists                       [+ Upload New]  │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  [🔍 Search lists...]                                           │
+│                                                                 │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │ List Name          │ Recipients │ Created   │ Used │Action│  │
+│  ├────────────────────┼────────────┼───────────┼──────┼──────┤  │
+│  │ Flash Sale March   │  47        │ Mar 03    │  1×  │ ⚙ 🗑 │  │
+│  │ VIP Beta Testers   │ 120        │ Feb 28    │  3×  │ ⚙ 🗑 │  │
+│  │ Event Attendees    │  85        │ Feb 15    │  2×  │ ⚙ 🗑 │  │
+│  │ Partner Contacts   │  32        │ Jan 20    │  0×  │ ⚙ 🗑 │  │
+│  └────────────────────┴────────────┴───────────┴──────┴──────┘  │
+│                                                                 │
+│  Click any list → [Send Broadcast to this list]                 │
+│                   [View/Edit Recipients]                        │
+│                   [Export CSV]                                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## App Flow 11: Campaign Manager — Ad-hoc Send to a Custom List
+
+```
+Dashboard ──▶ Broadcasts ──▶ [Ad-hoc Send]
+  │                               │
+  │    ┌──────────────────────────┘
+  │    ▼
+  │  Step 1: Add Recipients
+  │  ├─ Option A: Upload CSV file (drag & drop)
+  │  │    └─ System parses, deduplicates, validates emails/phones
+  │  ├─ Option B: Manually add rows (email + phone + name)
+  │  └─ Option C: Paste a list (one email/phone per line)
+  │         │
+  │         ▼
+  │  Preview: "47 recipients loaded, 3 duplicates removed"
+  │         │
+  │         ▼
+  │  Step 2: Select channel (Email/SMS/WhatsApp) + template
+  │  ├─ Choose: Send Now or Schedule
+  │  └─ Optionally save list for re-use
+  │         │
+  │         ▼
+  │  Step 3: Review & Confirm
+  │  ├─ Total recipients, channel, template, estimated cost
+  │  └─ [Send Now]
+  │         │
+  │         ▼
+  │  Analytics ──▶ Track delivery for this ad-hoc broadcast
+  │         │
+  │         ▼
+  └──▶ Saved Lists ──▶ List appears for future re-use
+```
+
+---
+
+## Page Index (All 26 Pages)
 
 | # | Page | Route | Phase | Description |
 |---|------|-------|-------|-------------|
@@ -1221,3 +1348,6 @@ Admin Panel ──▶ Review all tenant health
 | 22 | Webhook Config | `/settings/security/webhooks` | P8 | Signature verification + endpoints |
 | 23 | A/B Testing | `/broadcasts/:id/ab-test` | P10 | Variant testing + auto-winner |
 | 24 | Campaign Scheduler | `/broadcasts/schedule` | P10 | Calendar view + schedule queue |
+| 25 | **Ad-hoc Send** | `/broadcasts/adhoc` | **New** | CSV/manual list → quick send |
+| 26 | **Saved Lists** | `/broadcasts/lists` | **New** | Reusable ad-hoc recipient lists |
+

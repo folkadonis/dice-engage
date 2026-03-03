@@ -1375,3 +1375,80 @@ export const subscriptionManagementTemplate = pgTable(
       .onDelete("cascade"),
   ],
 );
+
+// ─── Ad-hoc Lists ───────────────────────────────────────────────────
+export const adhocListStatus = pgEnum("AdhocListStatus", [
+  "Draft",
+  "Ready",
+  "Sending",
+  "Sent",
+  "Failed",
+]);
+
+export const adhocList = pgTable(
+  "AdhocList",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    workspaceId: uuid().notNull(),
+    name: text().notNull(),
+    status: adhocListStatus().default("Draft").notNull(),
+    recipientCount: integer().default(0).notNull(),
+    channel: text(),
+    templateId: uuid(),
+    broadcastId: uuid(),
+    savedForReuse: boolean().default(false).notNull(),
+    metadata: jsonb(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("AdhocList_workspaceId_idx").using(
+      "btree",
+      table.workspaceId.asc().nullsLast().op("uuid_ops"),
+    ),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "AdhocList_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const adhocListRecipient = pgTable(
+  "AdhocListRecipient",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    listId: uuid().notNull(),
+    email: text(),
+    phone: text(),
+    firstName: text(),
+    lastName: text(),
+    properties: jsonb(),
+    status: text().default("pending").notNull(),
+    sentAt: timestamp({ precision: 3, mode: "date" }),
+    error: text(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("AdhocListRecipient_listId_idx").using(
+      "btree",
+      table.listId.asc().nullsLast().op("uuid_ops"),
+    ),
+    index("AdhocListRecipient_email_idx").using(
+      "btree",
+      table.email.asc().nullsLast(),
+    ),
+    foreignKey({
+      columns: [table.listId],
+      foreignColumns: [adhocList.id],
+      name: "AdhocListRecipient_listId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);

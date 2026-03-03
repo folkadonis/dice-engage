@@ -56,6 +56,8 @@ tags:
     description: Public endpoints (no auth required)
   - name: Debug
     description: Internal debugging endpoints
+  - name: Ad-hoc Lists
+    description: Upload CSV / manual entry for one-off broadcasts
 
 components:
   securitySchemes:
@@ -256,6 +258,60 @@ components:
           type: integer
         costMicros:
           type: integer
+
+    AdhocListResource:
+      type: object
+      required: [id, workspaceId, name, status, recipientCount, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        workspaceId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          enum: [Draft, Ready, Sending, Sent, Failed]
+        recipientCount:
+          type: integer
+        channel:
+          type: string
+        templateId:
+          type: string
+          format: uuid
+        savedForReuse:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AdhocRecipientResource:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        phone:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        status:
+          type: string
+          enum: [pending, sent, failed]
+        sentAt:
+          type: string
+          format: date-time
+        error:
+          type: string
 
 security:
   - BearerAuth: []
@@ -1520,6 +1576,333 @@ paths:
             text/html:
               schema:
                 type: string
+
+  # ═══════════════════════════════════════════════════════════════════
+  # AD-HOC LISTS — /api/admin/adhoc-lists
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/admin/adhoc-lists:
+    get:
+      tags: [Ad-hoc Lists]
+      summary: List all ad-hoc lists for a workspace
+      operationId: listAdhocLists
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Lists with aggregate stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lists:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdhocListResource"
+                  stats:
+                    type: object
+                    properties:
+                      totalLists:
+                        type: integer
+                      totalRecipients:
+                        type: integer
+                      savedLists:
+                        type: integer
+
+    post:
+      tags: [Ad-hoc Lists]
+      summary: Create a new ad-hoc list with recipients
+      operationId: createAdhocList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workspaceId, name, recipients]
+              properties:
+                workspaceId:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                recipients:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      properties:
+                        type: object
+                channel:
+                  type: string
+                templateId:
+                  type: string
+                  format: uuid
+                savedForReuse:
+                  type: boolean
+      responses:
+        "201":
+          description: List created with dedup stats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  list:
+                    $ref: "#/components/schemas/AdhocListResource"
+                  duplicatesRemoved:
+                    type: integer
+                  recipientCount:
+                    type: integer
+
+  /api/admin/adhoc-lists/parse-csv:
+    post:
+      tags: [Ad-hoc Lists]
+      summary: Parse CSV content and return validated recipients
+      operationId: parseCSV
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [csvContent]
+              properties:
+                csvContent:
+                  type: string
+      responses:
+        "200":
+          description: Parsed recipients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recipients:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdhocRecipientResource"
+                  count:
+                    type: integer
+                  duplicatesRemoved:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /api/admin/adhoc-lists/parse-paste:
+    post:
+      tags: [Ad-hoc Lists]
+      summary: Parse pasted text (one email/phone per line)
+      operationId: parsePasteList
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+      responses:
+        "200":
+          description: Parsed recipients
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recipients:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AdhocRecipientResource"
+                  count:
+                    type: integer
+                  duplicatesRemoved:
+                    type: integer
+
+  /api/admin/adhoc-lists/{id}:
+    get:
+      tags: [Ad-hoc Lists]
+      summary: Get a list with all recipients
+      operationId: getAdhocList
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List with recipients
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/AdhocListResource"
+                  - type: object
+                    properties:
+                      recipients:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/AdhocRecipientResource"
+        "404":
+          description: List not found
+
+    delete:
+      tags: [Ad-hoc Lists]
+      summary: Delete an ad-hoc list and all its recipients
+      operationId: deleteAdhocList
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List deleted
+        "404":
+          description: List not found
+
+  /api/admin/adhoc-lists/{id}/send:
+    post:
+      tags: [Ad-hoc Lists]
+      summary: Trigger message send for all recipients in a list
+      operationId: sendAdhocList
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workspaceId, channel, templateId]
+              properties:
+                workspaceId:
+                  type: string
+                  format: uuid
+                channel:
+                  type: string
+                templateId:
+                  type: string
+                  format: uuid
+      responses:
+        "202":
+          description: Send initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  listId:
+                    type: string
+                  recipientCount:
+                    type: integer
+                  channel:
+                    type: string
+        "409":
+          description: List already sending/sent
+
+  /api/admin/adhoc-lists/{id}/stats:
+    get:
+      tags: [Ad-hoc Lists]
+      summary: Get delivery stats for a list
+      operationId: getAdhocListStats
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Delivery statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  sent:
+                    type: integer
+                  failed:
+                    type: integer
+                  pending:
+                    type: integer
+
+  /api/admin/adhoc-lists/{id}/save:
+    patch:
+      tags: [Ad-hoc Lists]
+      summary: Toggle saved-for-reuse flag on a list
+      operationId: toggleAdhocListSave
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Save status toggled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  savedForReuse:
+                    type: boolean
+        "404":
+          description: List not found
 
   # ═══════════════════════════════════════════════════════════════════
   # INTERNAL DEBUG — /internal-api
