@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm/relations";
 
 import {
   adminApiKey,
+  billingUsage,
   brand,
   broadcast,
   componentConfiguration,
@@ -13,6 +14,7 @@ import {
   feature,
   integration,
   journey,
+  messageLog,
   messageTemplate,
   oauthToken,
   secret,
@@ -36,6 +38,8 @@ import {
 export const tenantRelations = relations(tenant, ({ many }) => ({
   brands: many(brand),
   workspaces: many(workspace),
+  messageLogs: many(messageLog),
+  billingUsages: many(billingUsage),
 }));
 
 export const brandRelations = relations(brand, ({ one, many }) => ({
@@ -44,6 +48,24 @@ export const brandRelations = relations(brand, ({ one, many }) => ({
     references: [tenant.id],
   }),
   workspaces: many(workspace),
+}));
+
+export const messageLogRelations = relations(messageLog, ({ one }) => ({
+  tenant: one(tenant, {
+    fields: [messageLog.tenantId],
+    references: [tenant.id],
+  }),
+  workspace: one(workspace, {
+    fields: [messageLog.workspaceId],
+    references: [workspace.id],
+  }),
+}));
+
+export const billingUsageRelations = relations(billingUsage, ({ one }) => ({
+  tenant: one(tenant, {
+    fields: [billingUsage.tenantId],
+    references: [tenant.id],
+  }),
 }));
 
 export const segmentIoConfigurationRelations = relations(

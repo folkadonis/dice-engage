@@ -1,0 +1,73 @@
+# Helm values override for Omnichannel SaaS features
+#
+# Layer this on top of the default values.yaml:
+#   helm upgrade --install dittofeed ./helm -f helm/values.yaml -f helm/values-omnichannel.yaml
+
+# ─── Redis for Rate Limiting & Caching ──────────────────────────────
+redis:
+  enabled: true
+  image: redis:7-alpine
+  replicas: 1
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 500m
+  persistence:
+    enabled: true
+    size: 1Gi
+
+# ─── Worker Scaling ─────────────────────────────────────────────────
+worker:
+  enabled: true
+  replicas: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilization: 70
+    targetMemoryUtilization: 80
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 512Mi
+      cpu: "1"
+  env:
+    WORKER_CONCURRENCY: "4"
+    DLQ_MAX_RETRIES: "3"
+    DLQ_RETRY_DELAY_MS: "1000"
+
+# ─── API Server ─────────────────────────────────────────────────────
+api:
+  replicas: 2
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilization: 70
+
+# ─── Security ───────────────────────────────────────────────────────
+security:
+  credentialEncryption:
+    enabled: true
+    # Set via --set security.credentialEncryption.key=<your-key>
+    # or use existingSecret
+    existingSecret: "credential-encryption-key"
+    existingSecretKey: "key"
+  rateLimiting:
+    enabled: true
+    backend: redis  # 'memory' or 'redis'
+  webhookVerification:
+    enabled: true
+
+# ─── Monitoring ─────────────────────────────────────────────────────
+monitoring:
+  prometheus:
+    enabled: true
+    serviceMonitor: true
+  grafana:
+    dashboards: true

@@ -199,6 +199,91 @@ export const workspace = pgTable(
   ],
 );
 
+// ─── Analytics & Billing Tables ─────────────────────────────────────
+
+export const messageLog = pgTable(
+  "MessageLog",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    tenantId: uuid().notNull(),
+    brandId: uuid(),
+    workspaceId: uuid().notNull(),
+    channel: text().notNull(),
+    provider: text().notNull(),
+    status: text().default("sent").notNull(),
+    recipientId: text(),
+    costMicros: integer().default(0).notNull(),
+    currency: text().default("USD").notNull(),
+    messageExternalId: text(),
+    metadata: jsonb(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("MessageLog_tenantId_idx").using(
+      "btree",
+      table.tenantId.asc().nullsLast(),
+    ),
+    index("MessageLog_workspaceId_idx").using(
+      "btree",
+      table.workspaceId.asc().nullsLast(),
+    ),
+    index("MessageLog_createdAt_idx").using(
+      "btree",
+      table.createdAt.asc().nullsLast(),
+    ),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "MessageLog_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "MessageLog_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const billingUsage = pgTable(
+  "BillingUsage",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    tenantId: uuid().notNull(),
+    periodStart: timestamp({ precision: 3, mode: "date" }).notNull(),
+    periodEnd: timestamp({ precision: 3, mode: "date" }).notNull(),
+    emailCount: integer().default(0).notNull(),
+    smsCount: integer().default(0).notNull(),
+    whatsappCount: integer().default(0).notNull(),
+    pushCount: integer().default(0).notNull(),
+    webhookCount: integer().default(0).notNull(),
+    totalCostMicros: integer().default(0).notNull(),
+    currency: text().default("USD").notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("BillingUsage_tenantId_period_key").using(
+      "btree",
+      table.tenantId.asc().nullsLast(),
+      table.periodStart.asc().nullsLast(),
+    ),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "BillingUsage_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
 export const segmentIoConfiguration = pgTable(
   "SegmentIOConfiguration",
   {

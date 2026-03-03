@@ -31,3 +31,9 @@ export { FirebasePushProvider } from "./push/firebasePush.provider";
 // WhatsApp Providers
 export { TwilioWhatsAppProvider } from "./whatsapp/twilioWhatsApp.provider";
 export { GupshupWhatsAppProvider } from "./whatsapp/gupshupWhatsApp.provider";
+
+// Web Push Providers
+export { WebPushVapidProvider } from "./webpush/webPushVapid.provider";
+
+// RCS Providers
+export { RCSProvider } from "./rcs/rcs.provider";
