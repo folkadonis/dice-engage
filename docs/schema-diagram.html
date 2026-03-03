@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dice Engage — Database Schema Diagram</title>
+  <style>
+    @page { size: landscape; margin: 10mm; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d1117;
+      color: #e6edf3;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 4px;
+      background: linear-gradient(135deg, #7c3aed, #2563eb, #06b6d4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      text-align: center;
+      color: #8b949e;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+      overflow: auto;
+    }
+    .mermaid svg {
+      max-width: 100%;
+    }
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #8b949e;
+    }
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+    .footer {
+      text-align: center;
+      color: #484f58;
+      font-size: 11px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Dice Engage — Database Schema</h1>
+  <p class="subtitle">Multi-Tenant Omnichannel SaaS Platform • 37 Tables • 18 Enums</p>
+
+  <div class="mermaid">
+erDiagram
+
+    Tenant {
+        uuid id PK
+        text name UK
+        TenantPlanType planType
+        TenantStatus status
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Brand {
+        uuid id PK
+        uuid tenantId FK
+        text name
+        text timezone
+        jsonb senderConfigJson
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Workspace {
+        uuid id PK
+        text name
+        WorkspaceType type
+        WorkspaceStatus status
+        text domain
+        text externalId
+        uuid parentWorkspaceId
+        uuid tenantId FK
+        uuid brandId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    MessageLog {
+        uuid id PK
+        uuid tenantId FK
+        uuid brandId
+        uuid workspaceId FK
+        text channel
+        text provider
+        text status
+        text recipientId
+        int costMicros
+        text currency
+        text messageExternalId
+        jsonb metadata
+        timestamp createdAt
+    }
+
+    BillingUsage {
+        uuid id PK
+        uuid tenantId FK
+        timestamp periodStart
+        timestamp periodEnd
+        int emailCount
+        int smsCount
+        int whatsappCount
+        int pushCount
+        int webhookCount
+        int totalCostMicros
+        text currency
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WorkspaceMember {
+        uuid id PK
+        text email UK
+        text name
+        text nickname
+        text image
+        bool emailVerified
+        uuid lastWorkspaceId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WorkspaceMemberRole {
+        uuid workspaceId FK
+        uuid workspaceMemberId FK
+        DBRoleType role
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WorkspaceMembeAccount {
+        uuid id PK
+        uuid workspaceMemberId FK
+        text provider
+        text providerAccountId
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Secret {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        text value
+        jsonb configValue
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    EmailProvider {
+        uuid id PK
+        uuid workspaceId FK
+        text type
+        text apiKey
+        uuid secretId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    DefaultEmailProvider {
+        uuid workspaceId FK
+        uuid emailProviderId FK
+        text fromAddress
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SmsProvider {
+        uuid id PK
+        uuid workspaceId FK
+        uuid secretId FK
+        text type
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    DefaultSmsProvider {
+        uuid workspaceId FK
+        uuid smsProviderId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WhatsappProvider {
+        uuid id PK
+        uuid workspaceId FK
+        uuid secretId FK
+        text type
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    DefaultWhatsappProvider {
+        uuid workspaceId FK
+        uuid whatsappProviderId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Journey {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        JourneyStatus status
+        jsonb definition
+        jsonb draft
+        DBResourceType resourceType
+        bool canRunMultiple
+        timestamp statusUpdatedAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Segment {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        jsonb definition
+        SegmentStatus status
+        DBResourceType resourceType
+        uuid subscriptionGroupId FK
+        timestamp definitionUpdatedAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SegmentAssignment {
+        text userId
+        bool inSegment
+        uuid workspaceId FK
+        uuid segmentId FK
+    }
+
+    SubscriptionGroup {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        DBSubscriptionGroupType type
+        DBChannelType channel
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Broadcast {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        uuid journeyId FK
+        uuid messageTemplateId FK
+        uuid segmentId FK
+        uuid subscriptionGroupId
+        DBBroadcastStatus status
+        DBBroadcastStatusV2 statusV2
+        DBBroadcastVersion version
+        timestamp scheduledAt
+        timestamp triggeredAt
+        bool archived
+        jsonb config
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    MessageTemplate {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        jsonb definition
+        jsonb draft
+        DBResourceType resourceType
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    EmailTemplate {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        text from
+        text subject
+        text body
+        text replyTo
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    UserProperty {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        jsonb definition
+        UserPropertyStatus status
+        DBResourceType resourceType
+        text exampleValue
+        timestamp definitionUpdatedAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    UserPropertyAssignment {
+        text userId
+        uuid userPropertyId FK
+        text value
+        uuid workspaceId FK
+    }
+
+    UserPropertyIndex {
+        uuid id PK
+        uuid workspaceId FK
+        uuid userPropertyId FK
+        DBUserPropertyIndexType type
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    UserJourneyEvent {
+        uuid id PK
+        text userId
+        uuid journeyId
+        text type
+        timestamp journeyStartedAt
+        text nodeId
+        text eventKey
+        text eventKeyName
+        timestamp createdAt
+    }
+
+    Integration {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        jsonb definition
+        bool enabled
+        timestamp definitionUpdatedAt
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WriteKey {
+        uuid id PK
+        uuid workspaceId FK
+        uuid secretId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    OauthToken {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        text refreshToken
+        text accessToken
+        int expiresIn
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    AdminApiKey {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        uuid secretId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Feature {
+        uuid workspaceId FK
+        text name
+        bool enabled
+        jsonb config
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    SegmentIOConfiguration {
+        uuid id PK
+        uuid workspaceId FK
+        text sharedSecret
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    ComputedPropertyPeriod {
+        uuid id PK
+        uuid workspaceId FK
+        ComputedPropertyType type
+        uuid computedPropertyId
+        text version
+        timestamp from
+        timestamp to
+        text step
+        timestamp createdAt
+    }
+
+    ComponentConfiguration {
+        uuid id PK
+        uuid workspaceId FK
+        text name
+        jsonb definition
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WorkspaceOccupantSetting {
+        uuid workspaceId FK
+        text name
+        text workspaceOccupantId
+        DBWorkspaceOccupantType occupantType
+        jsonb config
+        uuid secretId FK
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    WorkspaceRelation {
+        uuid parentWorkspaceId FK
+        uuid childWorkspaceId FK
+    }
+
+    SubscriptionManagementTemplate {
+        uuid id PK
+        uuid workspaceId FK
+        text template
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    Tenant ||--o{ Brand : "has"
+    Tenant ||--o{ Workspace : "owns"
+    Tenant ||--o{ MessageLog : "tracks"
+    Tenant ||--o{ BillingUsage : "billed"
+    Brand ||--o{ Workspace : "brands"
+
+    Workspace ||--o{ MessageLog : "sends"
+    Workspace ||--o{ Journey : "has"
+    Workspace ||--o{ Segment : "has"
+    Workspace ||--o{ Broadcast : "has"
+    Workspace ||--o{ MessageTemplate : "has"
+    Workspace ||--o{ EmailTemplate : "has"
+    Workspace ||--o{ UserProperty : "has"
+    Workspace ||--o{ SubscriptionGroup : "has"
+    Workspace ||--o{ Secret : "stores"
+    Workspace ||--o{ EmailProvider : "configures"
+    Workspace ||--o{ SmsProvider : "configures"
+    Workspace ||--o{ WhatsappProvider : "configures"
+    Workspace ||--o{ Integration : "has"
+    Workspace ||--o{ WriteKey : "has"
+    Workspace ||--o{ OauthToken : "has"
+    Workspace ||--o{ AdminApiKey : "has"
+    Workspace ||--o{ Feature : "has"
+    Workspace ||--o{ SegmentIOConfiguration : "has"
+    Workspace ||--o{ ComputedPropertyPeriod : "has"
+    Workspace ||--o{ ComponentConfiguration : "has"
+    Workspace ||--o{ WorkspaceOccupantSetting : "has"
+    Workspace ||--o{ WorkspaceMemberRole : "assigns"
+    Workspace ||--o{ SegmentAssignment : "tracks"
+    Workspace ||--o{ UserPropertyAssignment : "stores"
+    Workspace ||--o{ UserPropertyIndex : "indexes"
+    Workspace ||--o{ DefaultEmailProvider : "defaults"
+    Workspace ||--o{ DefaultSmsProvider : "defaults"
+    Workspace ||--o{ DefaultWhatsappProvider : "defaults"
+    Workspace ||--o{ SubscriptionManagementTemplate : "has"
+
+    WorkspaceMember ||--o{ WorkspaceMemberRole : "has"
+    WorkspaceMember ||--o{ WorkspaceMembeAccount : "has"
+    WorkspaceMember }o--|| Workspace : "last"
+
+    Secret ||--o{ EmailProvider : "secures"
+    Secret ||--o{ SmsProvider : "secures"
+    Secret ||--o{ WhatsappProvider : "secures"
+    Secret ||--o{ WriteKey : "secures"
+    Secret ||--o{ AdminApiKey : "secures"
+
+    EmailProvider ||--o{ DefaultEmailProvider : "default"
+    SmsProvider ||--o{ DefaultSmsProvider : "default"
+    WhatsappProvider ||--o{ DefaultWhatsappProvider : "default"
+
+    SubscriptionGroup ||--o{ Segment : "filters"
+    Segment ||--o{ SegmentAssignment : "assigns"
+    Segment ||--o{ Broadcast : "targets"
+    Journey ||--o{ Broadcast : "runs"
+    MessageTemplate ||--o{ Broadcast : "content"
+    UserProperty ||--o{ UserPropertyAssignment : "values"
+    UserProperty ||--o{ UserPropertyIndex : "indexed"
+
+    Workspace ||--o{ WorkspaceRelation : "parent"
+    Workspace ||--o{ WorkspaceRelation : "child"
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:#7c3aed"></div>Multi-Tenant</div>
+    <div class="legend-item"><div class="legend-color" style="background:#2563eb"></div>Messaging & Channels</div>
+    <div class="legend-item"><div class="legend-color" style="background:#06b6d4"></div>Automation</div>
+    <div class="legend-item"><div class="legend-color" style="background:#10b981"></div>User Data</div>
+    <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div>Billing & Analytics</div>
+    <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div>Security & Platform</div>
+  </div>
+  <p class="footer">Generated from schema.ts • 37 Tables • 18 Enums • 55+ Foreign Key Relationships</p>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      er: {
+        diagramPadding: 20,
+        layoutDirection: 'TB',
+        minEntityWidth: 100,
+        minEntityHeight: 75,
+        entityPadding: 15,
+        useMaxWidth: false,
+      },
+      themeVariables: {
+        primaryColor: '#1f2937',
+        primaryTextColor: '#e6edf3',
+        primaryBorderColor: '#30363d',
+        lineColor: '#58a6ff',
+        secondaryColor: '#161b22',
+        tertiaryColor: '#0d1117',
+      },
+    });
+  </script>
+</body>
+</html>

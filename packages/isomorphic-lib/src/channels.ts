@@ -7,6 +7,7 @@ export const CHANNEL_IDENTIFIERS: Record<
   [ChannelType.Email]: "email",
   [ChannelType.MobilePush]: "deviceToken",
   [ChannelType.Sms]: "phone",
+  [ChannelType.WhatsApp]: "phone",
 };
 
 export function isChannelType(type: string): type is ChannelType {

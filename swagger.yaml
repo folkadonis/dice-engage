@@ -1,0 +1,1537 @@
+openapi: 3.0.3
+info:
+  title: Dice Engage — Omnichannel SaaS Platform API
+  description: |
+    Production-ready, multi-tenant omnichannel marketing SaaS API.
+    Supports Email, SMS, WhatsApp, Mobile Push, Web Push, RCS, and Webhooks
+    with tenant isolation, billing, analytics, and admin management.
+  version: 1.0.0
+  contact:
+    name: Dice Engage Team
+
+servers:
+  - url: http://localhost:3001
+    description: Local development
+  - url: https://api.diceengage.com
+    description: Production
+
+tags:
+  - name: Tenants
+    description: Multi-tenant management (CRUD, suspension, activation)
+  - name: Brands
+    description: Brand management nested under tenants
+  - name: Billing
+    description: Usage tracking, plan limits, and billing analytics
+  - name: Admin Panel
+    description: Global admin dashboard, metrics, provider health
+  - name: Journeys
+    description: Journey/automation management
+  - name: Segments
+    description: User segment management
+  - name: Broadcasts
+    description: Broadcast campaign management
+  - name: Users
+    description: User and user property management
+  - name: Events
+    description: Event tracking and ingestion
+  - name: Settings
+    description: Workspace settings and configuration
+  - name: Secrets
+    description: Provider secret management
+  - name: Integrations
+    description: Third-party integration management
+  - name: Subscriptions
+    description: Subscription group management
+  - name: Content
+    description: Message template and content management
+  - name: Deliveries
+    description: Message delivery tracking
+  - name: Webhooks
+    description: Webhook endpoints for provider callbacks
+  - name: Computed Properties
+    description: Computed/derived user properties
+  - name: API Keys
+    description: Admin API key management
+  - name: Public
+    description: Public endpoints (no auth required)
+  - name: Debug
+    description: Internal debugging endpoints
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    ApiKeyAuth:
+      type: apiKey
+      name: Authorization
+      in: header
+    TenantContext:
+      type: apiKey
+      name: x-tenant-id
+      in: header
+
+  schemas:
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+
+    TenantResource:
+      type: object
+      required: [id, name, planType, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        planType:
+          type: string
+          enum: [Starter, Growth, Enterprise]
+        status:
+          type: string
+          enum: [Active, Suspended, Cancelled]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UpsertTenantResource:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        planType:
+          type: string
+          enum: [Starter, Growth, Enterprise]
+
+    BrandResource:
+      type: object
+      required: [id, tenantId, name, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        timezone:
+          type: string
+        senderConfigJson:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UsageSummary:
+      type: object
+      properties:
+        tenantId:
+          type: string
+        periodStart:
+          type: string
+          format: date-time
+        periodEnd:
+          type: string
+          format: date-time
+        emailCount:
+          type: integer
+        smsCount:
+          type: integer
+        whatsappCount:
+          type: integer
+        pushCount:
+          type: integer
+        webhookCount:
+          type: integer
+        totalMessages:
+          type: integer
+        totalCostMicros:
+          type: integer
+          description: Total cost in micros (1,000,000 micros = $1 USD)
+        currency:
+          type: string
+
+    PlanLimitCheck:
+      type: object
+      properties:
+        allowed:
+          type: boolean
+        currentUsage:
+          type: integer
+        limit:
+          type: integer
+        plan:
+          type: string
+          enum: [Starter, Growth, Enterprise]
+
+    ChannelBreakdown:
+      type: object
+      properties:
+        channel:
+          type: string
+        count:
+          type: integer
+        costMicros:
+          type: integer
+
+    DashboardOverview:
+      type: object
+      properties:
+        totalTenants:
+          type: integer
+        activeTenants:
+          type: integer
+        suspendedTenants:
+          type: integer
+        totalWorkspaces:
+          type: integer
+        messagesToday:
+          type: integer
+        messagesThisMonth:
+          type: integer
+        revenueThisMonthMicros:
+          type: integer
+        topChannels:
+          type: array
+          items:
+            type: object
+            properties:
+              channel:
+                type: string
+              count:
+                type: integer
+
+    TenantWithUsage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        planType:
+          type: string
+        status:
+          type: string
+        workspaceCount:
+          type: integer
+        currentMonthMessages:
+          type: integer
+        currentMonthCostMicros:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    ProviderHealth:
+      type: object
+      properties:
+        channelType:
+          type: string
+        providerType:
+          type: string
+        status:
+          type: string
+          enum: [healthy, degraded, down]
+
+    VolumeDataPoint:
+      type: object
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+        costMicros:
+          type: integer
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ═══════════════════════════════════════════════════════════════════
+  # TENANT MANAGEMENT — /api/admin/tenants
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/admin/tenants:
+    post:
+      tags: [Tenants]
+      summary: Create a new tenant
+      operationId: createTenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertTenantResource"
+      responses:
+        "201":
+          description: Tenant created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResource"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      tags: [Tenants]
+      summary: List all tenants
+      operationId: listTenants
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [Active, Suspended, Cancelled]
+      responses:
+        "200":
+          description: Tenant list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TenantResource"
+
+  /api/admin/tenants/{tenantId}:
+    get:
+      tags: [Tenants]
+      summary: Get a tenant by ID
+      operationId: getTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tenant found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResource"
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags: [Tenants]
+      summary: Update a tenant
+      operationId: updateTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpsertTenantResource"
+      responses:
+        "200":
+          description: Tenant updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResource"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags: [Tenants]
+      summary: Delete a tenant
+      operationId: deleteTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Tenant deleted
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/tenants/{tenantId}/suspend:
+    post:
+      tags: [Tenants]
+      summary: Suspend a tenant
+      operationId: suspendTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tenant suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResource"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/tenants/{tenantId}/activate:
+    post:
+      tags: [Tenants]
+      summary: Activate a suspended tenant
+      operationId: activateTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tenant activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantResource"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/tenants/{tenantId}/workspaces:
+    post:
+      tags: [Tenants]
+      summary: Assign a workspace to a tenant
+      operationId: assignWorkspaceToTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [workspaceId]
+              properties:
+                workspaceId:
+                  type: string
+                  format: uuid
+                brandId:
+                  type: string
+                  format: uuid
+      responses:
+        "204":
+          description: Workspace assigned
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # BRAND MANAGEMENT — /api/admin/tenants/{tenantId}/brands
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/admin/tenants/{tenantId}/brands:
+    post:
+      tags: [Brands]
+      summary: Create a brand under a tenant
+      operationId: createBrand
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                timezone:
+                  type: string
+                senderConfigJson:
+                  type: object
+      responses:
+        "201":
+          description: Brand created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandResource"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    get:
+      tags: [Brands]
+      summary: List brands for a tenant
+      operationId: listBrands
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Brand list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BrandResource"
+
+  /api/admin/tenants/{tenantId}/brands/{brandId}:
+    put:
+      tags: [Brands]
+      summary: Update a brand
+      operationId: updateBrand
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                timezone:
+                  type: string
+                senderConfigJson:
+                  type: object
+      responses:
+        "200":
+          description: Brand updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrandResource"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      tags: [Brands]
+      summary: Delete a brand
+      operationId: deleteBrand
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: brandId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Brand deleted
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # BILLING & ANALYTICS — /api/admin/billing
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/admin/billing/usage/{tenantId}:
+    get:
+      tags: [Billing]
+      summary: Get current billing period usage for a tenant
+      operationId: getBillingUsage
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Current billing period usage
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageSummary"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/billing/limits/{tenantId}:
+    get:
+      tags: [Billing]
+      summary: Check plan limits for a tenant
+      operationId: checkPlanLimits
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [Email, Sms, WhatsApp, MobilePush, WebPush, Webhook, RCS]
+          description: Channel to check limits for (defaults to Email)
+      responses:
+        "200":
+          description: Plan limit check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlanLimitCheck"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/billing/analytics/{tenantId}:
+    get:
+      tags: [Billing]
+      summary: Get message analytics with channel breakdown
+      operationId: getMessageAnalytics
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start date (defaults to start of current month)
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End date (defaults to now)
+        - name: workspaceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Optional workspace filter
+      responses:
+        "200":
+          description: Channel breakdown analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChannelBreakdown"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # ADMIN SUPER PANEL — /api/admin/panel
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/admin/panel/dashboard:
+    get:
+      tags: [Admin Panel]
+      summary: Global dashboard overview
+      operationId: getDashboard
+      description: |
+        Returns platform-wide metrics: tenant counts, workspace count,
+        today/month message volumes, revenue, and top channels.
+      responses:
+        "200":
+          description: Dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardOverview"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/panel/tenants:
+    get:
+      tags: [Admin Panel]
+      summary: List tenants with usage stats
+      operationId: listTenantsWithUsage
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [Active, Suspended, Cancelled]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Paginated tenant list with usage
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tenants:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TenantWithUsage"
+                  total:
+                    type: integer
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/panel/tenants/{tenantId}/plan:
+    put:
+      tags: [Admin Panel]
+      summary: Assign a plan to a tenant
+      operationId: assignPlan
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [planType]
+              properties:
+                planType:
+                  type: string
+                  enum: [Starter, Growth, Enterprise]
+      responses:
+        "200":
+          description: Plan assigned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  planType:
+                    type: string
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/panel/tenants/{tenantId}/suspend:
+    post:
+      tags: [Admin Panel]
+      summary: Suspend a tenant (admin panel)
+      operationId: adminSuspendTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tenant suspended
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/panel/tenants/{tenantId}/activate:
+    post:
+      tags: [Admin Panel]
+      summary: Activate a tenant (admin panel)
+      operationId: adminActivateTenant
+      parameters:
+        - name: tenantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Tenant activated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+        "404":
+          description: Tenant not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/panel/providers/health:
+    get:
+      tags: [Admin Panel]
+      summary: Provider health monitoring
+      operationId: getProviderHealth
+      description: |
+        Returns health status of all registered channel providers
+        from the ChannelRegistry.
+      responses:
+        "200":
+          description: Provider health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registeredProviders:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ProviderHealth"
+                  channelCount:
+                    type: integer
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/admin/panel/metrics/volume:
+    get:
+      tags: [Admin Panel]
+      summary: Global message volume time series
+      operationId: getMessageVolume
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+          description: Number of days to look back
+      responses:
+        "200":
+          description: Message volume data points
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dataPoints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/VolumeDataPoint"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  # ═══════════════════════════════════════════════════════════════════
+  # CORE PLATFORM APIs — /api (with auth)
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/journeys:
+    get:
+      tags: [Journeys]
+      summary: List journeys
+      operationId: listJourneys
+      responses:
+        "200":
+          description: Journey list
+    post:
+      tags: [Journeys]
+      summary: Create or update a journey
+      operationId: upsertJourney
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Journey created/updated
+
+  /api/journeys/{journeyId}:
+    get:
+      tags: [Journeys]
+      summary: Get a journey by ID
+      operationId: getJourney
+      parameters:
+        - name: journeyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Journey details
+    delete:
+      tags: [Journeys]
+      summary: Delete a journey
+      operationId: deleteJourney
+      parameters:
+        - name: journeyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Journey deleted
+
+  /api/segments:
+    get:
+      tags: [Segments]
+      summary: List segments
+      operationId: listSegments
+      responses:
+        "200":
+          description: Segment list
+    put:
+      tags: [Segments]
+      summary: Create or update a segment
+      operationId: upsertSegment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Segment created/updated
+
+  /api/segments/{segmentId}:
+    get:
+      tags: [Segments]
+      summary: Get a segment by ID
+      operationId: getSegment
+      parameters:
+        - name: segmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Segment details
+    delete:
+      tags: [Segments]
+      summary: Delete a segment
+      operationId: deleteSegment
+      parameters:
+        - name: segmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Segment deleted
+
+  /api/broadcasts:
+    get:
+      tags: [Broadcasts]
+      summary: List broadcasts
+      operationId: listBroadcasts
+      responses:
+        "200":
+          description: Broadcast list
+    put:
+      tags: [Broadcasts]
+      summary: Create or update a broadcast
+      operationId: upsertBroadcast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Broadcast created/updated
+
+  /api/broadcasts/{broadcastId}/trigger:
+    put:
+      tags: [Broadcasts]
+      summary: Trigger a broadcast
+      operationId: triggerBroadcast
+      parameters:
+        - name: broadcastId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Broadcast triggered
+
+  /api/events:
+    post:
+      tags: [Events]
+      summary: Submit events
+      operationId: submitEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                events:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Events submitted
+
+  /api/events/search:
+    post:
+      tags: [Events]
+      summary: Search events
+      operationId: searchEvents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Event search results
+
+  /api/users:
+    get:
+      tags: [Users]
+      summary: List users
+      operationId: listUsers
+      responses:
+        "200":
+          description: User list
+
+  /api/users/{userId}:
+    get:
+      tags: [Users]
+      summary: Get a user by ID
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User details
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: User deleted
+
+  /api/user-properties:
+    get:
+      tags: [Users]
+      summary: List user properties
+      operationId: listUserProperties
+      responses:
+        "200":
+          description: User property list
+    put:
+      tags: [Users]
+      summary: Create or update a user property
+      operationId: upsertUserProperty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: User property created/updated
+
+  /api/content:
+    get:
+      tags: [Content]
+      summary: List message templates
+      operationId: listTemplates
+      responses:
+        "200":
+          description: Template list
+    put:
+      tags: [Content]
+      summary: Create or update a message template
+      operationId: upsertTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Template created/updated
+
+  /api/content/templates/test:
+    post:
+      tags: [Content]
+      summary: Test render a message template
+      operationId: testTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Template test result
+
+  /api/settings:
+    get:
+      tags: [Settings]
+      summary: Get workspace settings
+      operationId: getSettings
+      responses:
+        "200":
+          description: Workspace settings
+    put:
+      tags: [Settings]
+      summary: Update workspace settings
+      operationId: updateSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Settings updated
+
+  /api/secrets:
+    get:
+      tags: [Secrets]
+      summary: List secrets
+      operationId: listSecrets
+      responses:
+        "200":
+          description: Secret list
+    put:
+      tags: [Secrets]
+      summary: Create or update a secret
+      operationId: upsertSecret
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Secret created/updated
+
+  /api/integrations:
+    get:
+      tags: [Integrations]
+      summary: List integrations
+      operationId: listIntegrations
+      responses:
+        "200":
+          description: Integration list
+
+  /api/subscription-groups:
+    get:
+      tags: [Subscriptions]
+      summary: List subscription groups
+      operationId: listSubscriptionGroups
+      responses:
+        "200":
+          description: Subscription group list
+    put:
+      tags: [Subscriptions]
+      summary: Create or update a subscription group
+      operationId: upsertSubscriptionGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Subscription group created/updated
+
+  /api/deliveries:
+    get:
+      tags: [Deliveries]
+      summary: Search message deliveries
+      operationId: searchDeliveries
+      parameters:
+        - name: journeyId
+          in: query
+          schema:
+            type: string
+        - name: userId
+          in: query
+          schema:
+            type: string
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [Email, Sms, MobilePush, WhatsApp, Webhook]
+      responses:
+        "200":
+          description: Delivery search results
+
+  /api/computed-properties:
+    get:
+      tags: [Computed Properties]
+      summary: List computed properties
+      operationId: listComputedProperties
+      responses:
+        "200":
+          description: Computed property list
+
+  /api/admin-keys:
+    get:
+      tags: [API Keys]
+      summary: List admin API keys
+      operationId: listApiKeys
+      responses:
+        "200":
+          description: API key list
+    post:
+      tags: [API Keys]
+      summary: Create a new API key
+      operationId: createApiKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+      responses:
+        "201":
+          description: API key created
+
+  /api/resources:
+    get:
+      tags: [Settings]
+      summary: List workspace resources
+      operationId: listResources
+      responses:
+        "200":
+          description: Resource list
+
+  /api/permissions:
+    get:
+      tags: [Settings]
+      summary: Get user permissions
+      operationId: getPermissions
+      responses:
+        "200":
+          description: User permissions
+
+  /api/analysis:
+    post:
+      tags: [Segments]
+      summary: Run segment analysis
+      operationId: runAnalysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Analysis results
+
+  /api/groups:
+    get:
+      tags: [Users]
+      summary: List user groups
+      operationId: listGroups
+      responses:
+        "200":
+          description: Group list
+
+  # ═══════════════════════════════════════════════════════════════════
+  # PUBLIC APIs — /api/public (no auth)
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/public/webhooks:
+    post:
+      tags: [Webhooks, Public]
+      summary: Receive provider webhook callbacks
+      operationId: receiveWebhook
+      security: []
+      description: |
+        Receives delivery status callbacks from providers (Twilio, Gupshup, etc.).
+        Webhook signature is verified if configured.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Webhook received
+
+  /api/public/subscription-management/{workspaceId}/{hash}:
+    get:
+      tags: [Subscriptions, Public]
+      summary: Get subscription management page
+      operationId: getSubscriptionManagement
+      security: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Subscription management HTML
+    post:
+      tags: [Subscriptions, Public]
+      summary: Update subscription preferences
+      operationId: updateSubscriptionPreferences
+      security: []
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Preferences updated
+
+  /api/public/apps/{appId}:
+    post:
+      tags: [Public]
+      summary: Handle public app requests (tracking, etc.)
+      operationId: handlePublicApp
+      security: []
+      parameters:
+        - name: appId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Request handled
+
+  /api/public/view-in-browser/{messageId}:
+    get:
+      tags: [Public]
+      summary: View email in browser
+      operationId: viewInBrowser
+      security: []
+      parameters:
+        - name: messageId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Email HTML content
+          content:
+            text/html:
+              schema:
+                type: string
+
+  # ═══════════════════════════════════════════════════════════════════
+  # INTERNAL DEBUG — /internal-api
+  # ═══════════════════════════════════════════════════════════════════
+
+  /internal-api/debug:
+    get:
+      tags: [Debug]
+      summary: Debug endpoint
+      operationId: debug
+      security: []
+      description: Internal debugging endpoint. Not exposed in production.
+      responses:
+        "200":
+          description: Debug information

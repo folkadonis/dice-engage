@@ -37,6 +37,7 @@ export const dbChannelType = pgEnum("DBChannelType", [
   "MobilePush",
   "Sms",
   "Webhook",
+  "WhatsApp",
 ]);
 export const dbCompletionStatus = pgEnum("DBCompletionStatus", [
   "NotStarted",
@@ -93,6 +94,67 @@ export const workspaceType = pgEnum("WorkspaceType", [
   "Child",
   "Parent",
 ]);
+export const tenantStatus = pgEnum("TenantStatus", [
+  "Active",
+  "Suspended",
+  "Cancelled",
+]);
+export const tenantPlanType = pgEnum("TenantPlanType", [
+  "Starter",
+  "Growth",
+  "Enterprise",
+]);
+
+export const tenant = pgTable(
+  "Tenant",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    name: text().notNull(),
+    planType: tenantPlanType().default("Starter").notNull(),
+    status: tenantStatus().default("Active").notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("Tenant_name_key").using(
+      "btree",
+      table.name.asc().nullsLast().op("text_ops"),
+    ),
+  ],
+);
+
+export const brand = pgTable(
+  "Brand",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    tenantId: uuid().notNull(),
+    name: text().notNull(),
+    timezone: text().default("UTC").notNull(),
+    senderConfigJson: jsonb(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("Brand_tenantId_name_key").using(
+      "btree",
+      table.tenantId.asc().nullsLast().op("uuid_ops"),
+      table.name.asc().nullsLast().op("text_ops"),
+    ),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "Brand_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
 
 export const workspace = pgTable(
   "Workspace",
@@ -109,6 +171,8 @@ export const workspace = pgTable(
     externalId: text(),
     parentWorkspaceId: uuid(),
     status: workspaceStatus().default("Active").notNull(),
+    tenantId: uuid(),
+    brandId: uuid(),
   },
   (table) => [
     unique("Workspace_parentWorkspaceId_externalId_key").on(
@@ -118,6 +182,105 @@ export const workspace = pgTable(
     unique("Workspace_parentWorkspaceId_name_key")
       .on(table.parentWorkspaceId, table.name)
       .nullsNotDistinct(),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "Workspace_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+    foreignKey({
+      columns: [table.brandId],
+      foreignColumns: [brand.id],
+      name: "Workspace_brandId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+  ],
+);
+
+// ─── Analytics & Billing Tables ─────────────────────────────────────
+
+export const messageLog = pgTable(
+  "MessageLog",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    tenantId: uuid().notNull(),
+    brandId: uuid(),
+    workspaceId: uuid().notNull(),
+    channel: text().notNull(),
+    provider: text().notNull(),
+    status: text().default("sent").notNull(),
+    recipientId: text(),
+    costMicros: integer().default(0).notNull(),
+    currency: text().default("USD").notNull(),
+    messageExternalId: text(),
+    metadata: jsonb(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("MessageLog_tenantId_idx").using(
+      "btree",
+      table.tenantId.asc().nullsLast(),
+    ),
+    index("MessageLog_workspaceId_idx").using(
+      "btree",
+      table.workspaceId.asc().nullsLast(),
+    ),
+    index("MessageLog_createdAt_idx").using(
+      "btree",
+      table.createdAt.asc().nullsLast(),
+    ),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "MessageLog_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "MessageLog_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const billingUsage = pgTable(
+  "BillingUsage",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    tenantId: uuid().notNull(),
+    periodStart: timestamp({ precision: 3, mode: "date" }).notNull(),
+    periodEnd: timestamp({ precision: 3, mode: "date" }).notNull(),
+    emailCount: integer().default(0).notNull(),
+    smsCount: integer().default(0).notNull(),
+    whatsappCount: integer().default(0).notNull(),
+    pushCount: integer().default(0).notNull(),
+    webhookCount: integer().default(0).notNull(),
+    totalCostMicros: integer().default(0).notNull(),
+    currency: text().default("USD").notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("BillingUsage_tenantId_period_key").using(
+      "btree",
+      table.tenantId.asc().nullsLast(),
+      table.periodStart.asc().nullsLast(),
+    ),
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenant.id],
+      name: "BillingUsage_tenantId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
   ],
 );
 
@@ -842,6 +1005,75 @@ export const smsProvider = pgTable(
       columns: [table.secretId],
       foreignColumns: [secret.id],
       name: "SmsProvider_secretId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const defaultWhatsappProvider = pgTable(
+  "DefaultWhatsappProvider",
+  {
+    workspaceId: uuid().notNull(),
+    whatsappProviderId: uuid().notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("DefaultWhatsappProvider_workspaceId_key").using(
+      "btree",
+      table.workspaceId.asc().nullsLast().op("uuid_ops"),
+    ),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "DefaultWhatsappProvider_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.whatsappProviderId],
+      foreignColumns: [whatsappProvider.id],
+      name: "DefaultWhatsappProvider_whatsappProviderId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+  ],
+);
+
+export const whatsappProvider = pgTable(
+  "WhatsappProvider",
+  {
+    id: uuid().primaryKey().defaultRandom().notNull(),
+    workspaceId: uuid().notNull(),
+    secretId: uuid().notNull(),
+    type: text().notNull(),
+    createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp({ precision: 3, mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("WhatsappProvider_workspaceId_type_key").using(
+      "btree",
+      table.workspaceId.asc().nullsLast().op("uuid_ops"),
+      table.type.asc().nullsLast().op("text_ops"),
+    ),
+    foreignKey({
+      columns: [table.workspaceId],
+      foreignColumns: [workspace.id],
+      name: "WhatsappProvider_workspaceId_fkey",
+    })
+      .onUpdate("cascade")
+      .onDelete("cascade"),
+    foreignKey({
+      columns: [table.secretId],
+      foreignColumns: [secret.id],
+      name: "WhatsappProvider_secretId_fkey",
     })
       .onUpdate("cascade")
       .onDelete("cascade"),

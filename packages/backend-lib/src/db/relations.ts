@@ -2,6 +2,8 @@ import { relations } from "drizzle-orm/relations";
 
 import {
   adminApiKey,
+  billingUsage,
+  brand,
   broadcast,
   componentConfiguration,
   computedPropertyPeriod,
@@ -12,6 +14,7 @@ import {
   feature,
   integration,
   journey,
+  messageLog,
   messageTemplate,
   oauthToken,
   secret,
@@ -20,6 +23,7 @@ import {
   segmentIoConfiguration,
   smsProvider,
   subscriptionGroup,
+  tenant,
   userProperty,
   userPropertyAssignment,
   workspace,
@@ -31,6 +35,39 @@ import {
   writeKey,
 } from "./schema";
 
+export const tenantRelations = relations(tenant, ({ many }) => ({
+  brands: many(brand),
+  workspaces: many(workspace),
+  messageLogs: many(messageLog),
+  billingUsages: many(billingUsage),
+}));
+
+export const brandRelations = relations(brand, ({ one, many }) => ({
+  tenant: one(tenant, {
+    fields: [brand.tenantId],
+    references: [tenant.id],
+  }),
+  workspaces: many(workspace),
+}));
+
+export const messageLogRelations = relations(messageLog, ({ one }) => ({
+  tenant: one(tenant, {
+    fields: [messageLog.tenantId],
+    references: [tenant.id],
+  }),
+  workspace: one(workspace, {
+    fields: [messageLog.workspaceId],
+    references: [workspace.id],
+  }),
+}));
+
+export const billingUsageRelations = relations(billingUsage, ({ one }) => ({
+  tenant: one(tenant, {
+    fields: [billingUsage.tenantId],
+    references: [tenant.id],
+  }),
+}));
+
 export const segmentIoConfigurationRelations = relations(
   segmentIoConfiguration,
   ({ one }) => ({
@@ -41,7 +78,15 @@ export const segmentIoConfigurationRelations = relations(
   }),
 );
 
-export const workspaceRelations = relations(workspace, ({ many }) => ({
+export const workspaceRelations = relations(workspace, ({ one, many }) => ({
+  tenant: one(tenant, {
+    fields: [workspace.tenantId],
+    references: [tenant.id],
+  }),
+  brand: one(brand, {
+    fields: [workspace.brandId],
+    references: [brand.id],
+  }),
   segmentIoConfigurations: many(segmentIoConfiguration),
   userProperties: many(userProperty),
   userPropertyAssignments: many(userPropertyAssignment),

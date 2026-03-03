@@ -614,6 +614,97 @@ export default async function webhookController(fastify: FastifyInstance) {
     },
   );
 
+  // Gupshup WhatsApp delivery report webhook
+  fastify.withTypeProvider<TypeBoxTypeProvider>().post(
+    "/gupshup-whatsapp",
+    {
+      schema: {
+        description:
+          "Used to consume Gupshup WhatsApp delivery report webhooks.",
+        tags: ["Webhooks"],
+        body: Type.Object(
+          {
+            type: Type.String(),
+            payload: Type.Object(
+              {
+                id: Type.Optional(Type.String()),
+                destination: Type.Optional(Type.String()),
+                gsId: Type.Optional(Type.String()),
+                type: Type.Optional(Type.String()),
+              },
+              { additionalProperties: true },
+            ),
+          },
+          { additionalProperties: true },
+        ),
+        querystring: Type.Object({
+          workspaceId: Type.String(),
+          userId: Type.Optional(Type.String()),
+        }),
+      },
+    },
+    async (request, reply) => {
+      const { workspaceId, userId } = request.query;
+      const { type, payload } = request.body;
+
+      logger().debug(
+        {
+          workspaceId,
+          type,
+          payload,
+        },
+        "Received Gupshup WhatsApp webhook.",
+      );
+
+      // Map Gupshup event types to internal tracking
+      const gupshupEventMap: Record<string, string> = {
+        sent: "DFSmsDelivered", // sent by provider
+        delivered: "DFSmsDelivered",
+        read: "DFSmsDelivered",
+        failed: "DFSmsFailed",
+        enqueued: "DFSmsDelivered",
+      };
+
+      const internalEventType = gupshupEventMap[type];
+      if (!internalEventType) {
+        logger().debug(
+          { type },
+          "Unknown Gupshup WhatsApp event type, ignoring.",
+        );
+        return reply.status(200).send();
+      }
+
+      if (userId) {
+        const trackData = {
+          type: "track" as const,
+          event: internalEventType,
+          userId,
+          messageId: payload.gsId ?? payload.id ?? `gupshup-wa-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          properties: {
+            workspaceId,
+            channel: "WhatsApp",
+            provider: "Gupshup",
+            destination: payload.destination,
+            gupshupEventType: type,
+          },
+        };
+
+        await insertUserEvents({
+          workspaceId,
+          userEvents: [
+            {
+              messageId: trackData.messageId,
+              messageRaw: JSON.stringify(trackData),
+            },
+          ],
+        });
+      }
+
+      return reply.status(200).send();
+    },
+  );
+
   fastify.withTypeProvider<TypeBoxTypeProvider>().post(
     "/segment",
     {

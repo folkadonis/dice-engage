@@ -22,6 +22,7 @@ import {
   OpenIdProfile,
   RequestContextErrorType,
   RequestContextResult,
+  UserPropertyDefinition,
   Workspace,
   WorkspaceMember,
   WorkspaceMemberResource,
@@ -33,25 +34,35 @@ import {
   WorkspaceTypeApp,
   WorkspaceTypeAppEnum,
 } from "./types";
-import { isProfileEmailVerified } from "./openIdProfile";
-
-export const SESSION_KEY = "df-session-key";
 
 interface RolesWithWorkspace {
   workspace:
-    | (WorkspaceResource & {
-        status: WorkspaceStatusDb;
-        type: WorkspaceTypeApp;
-        parentWorkspaceId: string | null;
-      })
-    | null;
+  | (WorkspaceResource & {
+    status: WorkspaceStatusDb;
+    type: WorkspaceTypeApp;
+    parentWorkspaceId: string | null;
+  })
+  | null;
   memberRoles: WorkspaceMemberRoleResource[];
 }
 
 export async function findAndCreateRoles(
   member: WorkspaceMember,
+  tenantId?: string
 ): Promise<RolesWithWorkspace> {
   const domain = member.email?.split("@")[1];
+
+  const workspaceConditions = [
+    eq(dbWorkspace.status, WorkspaceStatusDbEnum.Active),
+    or(
+      eq(dbWorkspaceMemberRole.workspaceMemberId, member.id),
+      domain ? eq(dbWorkspace.domain, domain) : undefined,
+    ),
+  ];
+
+  if (tenantId) {
+    workspaceConditions.push(eq(dbWorkspace.tenantId, tenantId));
+  }
 
   const workspaces = await db()
     .select()
@@ -63,15 +74,7 @@ export async function findAndCreateRoles(
         eq(dbWorkspaceMemberRole.workspaceMemberId, member.id),
       ),
     )
-    .where(
-      and(
-        eq(dbWorkspace.status, WorkspaceStatusDbEnum.Active),
-        or(
-          eq(dbWorkspaceMemberRole.workspaceMemberId, member.id),
-          domain ? eq(dbWorkspace.domain, domain) : undefined,
-        ),
-      ),
-    );
+    .where(and(...workspaceConditions));
 
   const domainWorkspacesWithoutRole = workspaces.filter(
     (w) => w.WorkspaceMemberRole === null,
@@ -251,7 +254,7 @@ export async function getMultiTenantRequestContext({
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  const { sub, email, picture, name, nickname } = profile;
+  const { sub, email, picture, name, nickname, tenantId } = profile;
   const emailVerified = isProfileEmailVerified(profile);
 
   if (!emailVerified) {
@@ -345,7 +348,7 @@ export async function getMultiTenantRequestContext({
     });
   }
 
-  const { workspace, memberRoles } = await findAndCreateRoles(member);
+  const { workspace, memberRoles } = await findAndCreateRoles(member, tenantId);
   if (workspace !== null && workspace.status !== WorkspaceStatusDbEnum.Active) {
     return err({
       type: RequestContextErrorType.WorkspaceInactive,

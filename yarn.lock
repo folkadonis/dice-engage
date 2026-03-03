@@ -17322,6 +17322,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dice-engage@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "dice-engage@workspace:."
+  dependencies:
+    "@babel/core": "npm:^7.28.5"
+    "@babel/preset-env": "npm:^7.28.5"
+    "@types/babel__core": "npm:^7"
+    "@types/babel__preset-env": "npm:^7"
+    "@types/jest": "npm:^29.2.6"
+    "@types/node": "npm:20.14.8"
+    "@typescript-eslint/eslint-plugin": "npm:^5.60.0"
+    "@typescript-eslint/parser": "npm:^5.60.0"
+    babel-jest: "npm:^30.2.0"
+    eslint: "npm:^8.43.0"
+    eslint-config-airbnb: "npm:^19.0.4"
+    eslint-config-airbnb-typescript: "npm:^17.0.0"
+    eslint-config-prettier: "npm:^8.8.0"
+    eslint-plugin-filenames: "npm:^1.3.2"
+    eslint-plugin-import: "npm:^2.27.5"
+    eslint-plugin-jsx-a11y: "npm:^6.7.1"
+    eslint-plugin-react: "npm:^7.32.2"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    eslint-plugin-simple-import-sort: "npm:^10.0.0"
+    jest: "npm:^29.4.0"
+    jest-environment-jsdom: "npm:^30.2.0"
+    jest-expect-message: "npm:^1.1.3"
+    jest-runner-groups: "npm:^2.2.0"
+    prettier: "npm:3.2.5"
+    prettier-eslint: "npm:^16.3.0"
+    ts-jest: "npm:^29.2.5"
+    ts-node: "npm:10.9.1"
+    typescript: "npm:5.6.3"
+  languageName: unknown
+  linkType: soft
+
 "didyoumean@npm:^1.2.2":
   version: 1.2.2
   resolution: "didyoumean@npm:1.2.2"
@@ -17381,41 +17416,6 @@ __metadata:
   checksum: 10/572ac399093d7c9f2181c96828d252922e2a962b8f31a7fc118e3f7619592c566cc2ed313baf7703f17b2be00cd3c1402550140d0c3f4f70362976376a08b095
   languageName: node
   linkType: hard
-
-"dittofeed@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "dittofeed@workspace:."
-  dependencies:
-    "@babel/core": "npm:^7.28.5"
-    "@babel/preset-env": "npm:^7.28.5"
-    "@types/babel__core": "npm:^7"
-    "@types/babel__preset-env": "npm:^7"
-    "@types/jest": "npm:^29.2.6"
-    "@types/node": "npm:20.14.8"
-    "@typescript-eslint/eslint-plugin": "npm:^5.60.0"
-    "@typescript-eslint/parser": "npm:^5.60.0"
-    babel-jest: "npm:^30.2.0"
-    eslint: "npm:^8.43.0"
-    eslint-config-airbnb: "npm:^19.0.4"
-    eslint-config-airbnb-typescript: "npm:^17.0.0"
-    eslint-config-prettier: "npm:^8.8.0"
-    eslint-plugin-filenames: "npm:^1.3.2"
-    eslint-plugin-import: "npm:^2.27.5"
-    eslint-plugin-jsx-a11y: "npm:^6.7.1"
-    eslint-plugin-react: "npm:^7.32.2"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
-    eslint-plugin-simple-import-sort: "npm:^10.0.0"
-    jest: "npm:^29.4.0"
-    jest-environment-jsdom: "npm:^30.2.0"
-    jest-expect-message: "npm:^1.1.3"
-    jest-runner-groups: "npm:^2.2.0"
-    prettier: "npm:3.2.5"
-    prettier-eslint: "npm:^16.3.0"
-    ts-jest: "npm:^29.2.5"
-    ts-node: "npm:10.9.1"
-    typescript: "npm:5.6.3"
-  languageName: unknown
-  linkType: soft
 
 "dlv@npm:^1.1.0, dlv@npm:^1.1.3":
   version: 1.1.3

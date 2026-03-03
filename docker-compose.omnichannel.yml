@@ -1,0 +1,58 @@
+# Docker Compose — Multi-Tenant Omnichannel Extension
+#
+# Adds services for the extended platform:
+# - Redis for rate limiting and caching
+# - Worker for async message processing with DLQ support
+#
+# Meant to be used alongside the existing docker-compose.yml:
+#   docker-compose -f docker-compose.yml -f docker-compose.omnichannel.yml up
+
+version: "3.8"
+
+services:
+  # ─── Redis for Rate Limiting + Caching ─────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ─── Background Worker (Message Processing + DLQ) ──────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY}
+      NODE_ENV: production
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-4}
+      DLQ_MAX_RETRIES: ${DLQ_MAX_RETRIES:-3}
+      DLQ_RETRY_DELAY_MS: ${DLQ_RETRY_DELAY_MS:-5000}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 256M
+          cpus: "0.5"
+
+volumes:
+  redis-data:
