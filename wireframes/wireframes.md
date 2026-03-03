@@ -1320,7 +1320,106 @@ Dashboard ──▶ Broadcasts ──▶ [Ad-hoc Send]
 
 ---
 
-## Page Index (All 26 Pages)
+## 27. Real-Time Engagement Dashboard (New Feature)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  Analytics > Engagement Dashboard            [🔴 Live] [⏸ Pause]│
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Period: [Last 7 days ▼]  Channel: [All ▼]  [↻ Refresh]       │
+│                                                                 │
+│  ┌─ Overall Metrics ──────────────────────────────────────────┐ │
+│  │  📤 Sent    📬 Delivered   👁 Opened    🖱 Clicked          │ │
+│  │  12,450     11,820         4,230        1,105               │ │
+│  │             94.9% ✅       35.8%        26.1%               │ │
+│  └─────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│  ┌─ Channel Breakdown ────────────────────────────────────────┐ │
+│  │ Channel   │ Sent  │ Deliv │ Opens │ Clicks│ Rate │ Status │ │
+│  ├───────────┼───────┼───────┼───────┼───────┼──────┼────────┤ │
+│  │ 📧 Email  │ 8,200 │ 7,954 │ 3,100 │  820  │ 97%  │ ✅     │ │
+│  │ 📱 SMS    │ 2,100 │ 2,050 │  —    │  180  │ 98%  │ ✅     │ │
+│  │ 💬 WhatsApp│1,500 │ 1,420 │  980  │   85  │ 95%  │ ✅     │ │
+│  │ 🔔 Push   │  500  │  280  │  150  │   20  │ 56%  │ ⚠️     │ │
+│  │ 🔗 Webhook│  150  │  116  │  —    │   —   │ 77%  │ ✅     │ │
+│  └───────────┴───────┴───────┴───────┴───────┴──────┴────────┘ │
+│                                                                 │
+│  ┌─ Engagement Heatmap (Best Time to Send) ───────────────────┐ │
+│  │     Mon  Tue  Wed  Thu  Fri  Sat  Sun                      │ │
+│  │  6am ░    ░    ░    ░    ░    ▒    ░                        │ │
+│  │  9am ▓    ▓    ▓    ▓    ▓    ░    ░                        │ │
+│  │ 12pm █    ▓    █    ▓    ▓    ▒    ░                        │ │
+│  │  3pm ▓    █    ▓    █    ▓    ░    ░                        │ │
+│  │  6pm ▒    ▓    ▒    ▓    ▒    ░    ░                        │ │
+│  │  9pm ░    ▒    ░    ▒    ░    ░    ░                        │ │
+│  │                                                            │ │
+│  │  ░ Low   ▒ Medium   ▓ High   █ Peak                       │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│  ┌─ Live Event Timeline ──────────────────────────────────────┐ │
+│  │ 🔴 Connected — streaming real-time events                  │ │
+│  │                                                            │ │
+│  │ 16:34:12  📧 Email Opened      john@acme.com    Flash Sale │ │
+│  │ 16:34:08  💬 WA Delivered      +91-98765...     Welcome    │ │
+│  │ 16:34:05  📧 Email Clicked     sara@beta.io     Newsletter │ │
+│  │ 16:33:58  📱 SMS Delivered     +1-555-012...    OTP        │ │
+│  │ 16:33:51  🔔 Push Clicked      user_4829       App Update  │ │
+│  │ 16:33:45  📧 Email Bounced     old@gone.com     Promo ⚠️   │ │
+│  │ 16:33:40  💬 WA Read           +44-7700...      Survey     │ │
+│  │           ...                                              │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                 │
+│  ┌─ User Engagement Score (search) ───────────────────────────┐ │
+│  │ [🔍 Search user by ID or email...]                         │ │
+│  │                                                            │ │
+│  │  User: john@acme.com                                       │ │
+│  │  Score: 82/100  🔥 ON FIRE                                 │ │
+│  │  ├─ Messages received:  47                                 │ │
+│  │  ├─ Opened:             38  (81%)                          │ │
+│  │  ├─ Clicked:            12  (32%)                          │ │
+│  │  └─ Last engagement:    2 min ago                          │ │
+│  │                                                            │ │
+│  │  Levels: 🥶 Cold (0-24) │ 🌤 Warm (25-49)                  │ │
+│  │          🔥 Hot (50-74)  │ 🔥🔥 On Fire (75-100)             │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## App Flow 12: Campaign Manager — Monitor Real-Time Engagement
+
+```
+Dashboard ──▶ Analytics ──▶ Engagement Dashboard
+  │                              │
+  │    ┌─────────────────────────┘
+  │    ▼
+  │  Overall Metrics (auto-refresh or live via SSE)
+  │  ├─ Delivery rate, open rate, click rate
+  │  └─ Per-channel breakdown table
+  │         │
+  │         ▼
+  │  Engagement Heatmap
+  │  ├─ Day × Hour grid showing peak engagement times
+  │  └─ Use to optimize send schedules
+  │         │
+  │         ▼
+  │  Live Event Timeline (SSE stream)
+  │  ├─ Real-time feed: opens, clicks, deliveries, bounces
+  │  ├─ Filterable by channel
+  │  └─ 🔴 Live indicator with pause/resume
+  │         │
+  │         ▼
+  │  User Engagement Score
+  │  ├─ Search any user → see their 0-100 score
+  │  ├─ Levels: cold / warm / hot / on_fire
+  │  └─ Engagement history: messages, opens, clicks
+```
+
+---
+
+## Page Index (All 27 Pages)
 
 | # | Page | Route | Phase | Description |
 |---|------|-------|-------|-------------|
@@ -1348,6 +1447,8 @@ Dashboard ──▶ Broadcasts ──▶ [Ad-hoc Send]
 | 22 | Webhook Config | `/settings/security/webhooks` | P8 | Signature verification + endpoints |
 | 23 | A/B Testing | `/broadcasts/:id/ab-test` | P10 | Variant testing + auto-winner |
 | 24 | Campaign Scheduler | `/broadcasts/schedule` | P10 | Calendar view + schedule queue |
-| 25 | **Ad-hoc Send** | `/broadcasts/adhoc` | **New** | CSV/manual list → quick send |
-| 26 | **Saved Lists** | `/broadcasts/lists` | **New** | Reusable ad-hoc recipient lists |
+| 25 | Ad-hoc Send | `/broadcasts/adhoc` | New | CSV/manual list → quick send |
+| 26 | Saved Lists | `/broadcasts/lists` | New | Reusable ad-hoc recipient lists |
+| 27 | **Engagement Dashboard** | `/analytics/engagement` | **New** | Real-time metrics, heatmap, SSE stream, user scores |
+
 

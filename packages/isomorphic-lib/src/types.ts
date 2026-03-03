@@ -149,6 +149,7 @@ export enum InternalEventType {
   MessageSkipped = "DFMessageSkipped",
   SegmentBroadcast = "DFSegmentBroadcast",
   SubscriptionChange = "DFSubscriptionChange",
+  // Email engagement
   EmailDropped = "DFEmailDropped",
   EmailDelivered = "DFEmailDelivered",
   EmailOpened = "DFEmailOpened",
@@ -156,8 +157,24 @@ export enum InternalEventType {
   EmailClicked = "DFEmailClicked",
   EmailBounced = "DFEmailBounced",
   EmailMarkedSpam = "DFEmailMarkedSpam",
+  // SMS engagement
   SmsDelivered = "DFSmsDelivered",
   SmsFailed = "DFSmsFailed",
+  SmsClicked = "DFSmsClicked",
+  // WhatsApp engagement
+  WhatsAppDelivered = "DFWhatsAppDelivered",
+  WhatsAppRead = "DFWhatsAppRead",
+  WhatsAppReplied = "DFWhatsAppReplied",
+  WhatsAppFailed = "DFWhatsAppFailed",
+  // Push notification engagement
+  PushDelivered = "DFPushDelivered",
+  PushClicked = "DFPushClicked",
+  PushDismissed = "DFPushDismissed",
+  PushFailed = "DFPushFailed",
+  // Webhook engagement
+  WebhookDelivered = "DFWebhookDelivered",
+  WebhookFailed = "DFWebhookFailed",
+  // Journey & other
   JourneyNodeProcessed = "DFJourneyNodeProcessed",
   ManualSegmentUpdate = "DFManualSegmentUpdate",
   AttachedFiles = "DFAttachedFiles",
@@ -168,14 +185,30 @@ export enum InternalEventType {
 }
 
 export const StatusEventsList = [
+  // Email
   InternalEventType.EmailDropped,
   InternalEventType.EmailDelivered,
   InternalEventType.EmailOpened,
   InternalEventType.EmailClicked,
   InternalEventType.EmailBounced,
   InternalEventType.EmailMarkedSpam,
+  // SMS
   InternalEventType.SmsDelivered,
   InternalEventType.SmsFailed,
+  InternalEventType.SmsClicked,
+  // WhatsApp
+  InternalEventType.WhatsAppDelivered,
+  InternalEventType.WhatsAppRead,
+  InternalEventType.WhatsAppReplied,
+  InternalEventType.WhatsAppFailed,
+  // Push
+  InternalEventType.PushDelivered,
+  InternalEventType.PushClicked,
+  InternalEventType.PushDismissed,
+  InternalEventType.PushFailed,
+  // Webhook
+  InternalEventType.WebhookDelivered,
+  InternalEventType.WebhookFailed,
 ] as const;
 
 export enum CursorDirectionEnum {

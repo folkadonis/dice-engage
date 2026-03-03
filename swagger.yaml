@@ -58,6 +58,8 @@ tags:
     description: Internal debugging endpoints
   - name: Ad-hoc Lists
     description: Upload CSV / manual entry for one-off broadcasts
+  - name: Engagement
+    description: Real-time audience engagement tracking, metrics, and SSE stream
 
 components:
   securitySchemes:
@@ -1903,6 +1905,289 @@ paths:
                     type: boolean
         "404":
           description: List not found
+
+  # ═══════════════════════════════════════════════════════════════════
+  # ENGAGEMENT TRACKING — /api/admin/engagement
+  # ═══════════════════════════════════════════════════════════════════
+
+  /api/admin/engagement/summary:
+    get:
+      tags: [Engagement]
+      summary: Channel-by-channel engagement metrics with rates
+      operationId: getEngagementSummary
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [Email, SMS, WhatsApp, Push, Webhook]
+        - name: broadcastId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: journeyId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Engagement summary by channel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  period:
+                    type: object
+                    properties:
+                      startDate:
+                        type: string
+                        format: date-time
+                      endDate:
+                        type: string
+                        format: date-time
+                  channels:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        channel:
+                          type: string
+                        sent:
+                          type: integer
+                        delivered:
+                          type: integer
+                        opened:
+                          type: integer
+                        clicked:
+                          type: integer
+                        failed:
+                          type: integer
+                        bounced:
+                          type: integer
+                        spam:
+                          type: integer
+                        deliveryRate:
+                          type: number
+                        openRate:
+                          type: number
+                        clickRate:
+                          type: number
+                  totals:
+                    type: object
+                    properties:
+                      sent:
+                        type: integer
+                      delivered:
+                        type: integer
+                      opened:
+                        type: integer
+                      clicked:
+                        type: integer
+                      deliveryRate:
+                        type: number
+                      openRate:
+                        type: number
+                      clickRate:
+                        type: number
+
+  /api/admin/engagement/timeline:
+    get:
+      tags: [Engagement]
+      summary: Recent engagement events feed
+      operationId: getEngagementTimeline
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: channel
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recent events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        userId:
+                          type: string
+                        channel:
+                          type: string
+                        status:
+                          type: string
+                        messageId:
+                          type: string
+                        broadcastId:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+
+  /api/admin/engagement/heatmap:
+    get:
+      tags: [Engagement]
+      summary: Engagement heatmap by day-of-week and hour
+      operationId: getEngagementHeatmap
+      parameters:
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: Heatmap data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  heatmap:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        dayOfWeek:
+                          type: integer
+                          description: "0=Sun, 6=Sat"
+                        hour:
+                          type: integer
+                        eventCount:
+                          type: integer
+                        opens:
+                          type: integer
+                        clicks:
+                          type: integer
+
+  /api/admin/engagement/user/{userId}:
+    get:
+      tags: [Engagement]
+      summary: Per-user engagement score (0-100)
+      operationId: getUserEngagementScore
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: workspaceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: User engagement score
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                  score:
+                    type: integer
+                    description: "0-100 engagement score"
+                  level:
+                    type: string
+                    enum: [cold, warm, hot, on_fire]
+                  totalMessages:
+                    type: integer
+                  opened:
+                    type: integer
+                  clicked:
+                    type: integer
+                  lastEngagement:
+                    type: string
+                    format: date-time
+        "404":
+          description: No engagement data
+
+  /api/admin/engagement/channels:
+    get:
+      tags: [Engagement]
+      summary: List all trackable engagement event types per channel
+      operationId: getEngagementChannels
+      responses:
+        "200":
+          description: Channel event types
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  channels:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+
+  /api/admin/engagement/stream:
+    get:
+      tags: [Engagement]
+      summary: Real-time SSE event stream
+      operationId: getEngagementStream
+      description: |
+        Server-Sent Events stream for real-time engagement tracking.
+        Sends heartbeat every 15s. Events include: connected, heartbeat, engagement.
+      parameters:
+        - name: workspaceId
+          in: query
+          schema:
+            type: string
+            format: uuid
+            description: Filter to a specific workspace (omit for global stream)
+      responses:
+        "200":
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
 
   # ═══════════════════════════════════════════════════════════════════
   # INTERNAL DEBUG — /internal-api
