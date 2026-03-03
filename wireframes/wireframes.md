@@ -8,16 +8,20 @@ All pages share a common layout: **Sidebar** (left) + **Header** (top) + **Conte
 
 ### 1. 🛡️ Super Admin (Platform Owner)
 - **Who**: Dice Engage platform operators
-- **Access**: All pages (1–24)
-- **Can do**: Manage tenants, assign plans, monitor DLQ, view all analytics,
-  rotate encryption keys, configure rate limits, manage all providers
+- **Access**: Admin Panel, Tenant Mgmt, DLQ, Rate Limiting, Platform Dashboard
+- **Can do**: Create/suspend tenants, assign plans, monitor DLQ, rotate
+  platform encryption keys, configure global rate limits, view platform analytics
+- **Cannot do**: Configure tenant-level channel providers or secrets
+  (that's the Tenant Admin's job — they bring their own API keys)
 
 ### 2. 🏢 Tenant Admin (Owner)
 - **Who**: Organization owner who signed up for Dice Engage
 - **Access**: Dashboard, Journeys, Broadcasts, Segments, Templates, Users,
   Billing, Analytics, Settings, Security, API Keys, Webhooks
-- **Can do**: Full workspace control, manage team roles (RBAC), configure
-  providers, manage brands, manage billing, create/send campaigns
+- **Can do**: Configure THEIR OWN channel providers (bring their own Twilio,
+  SMTP, SES, FCM keys), manage brands, manage team roles (RBAC), manage
+  billing, create/send campaigns, set up webhooks + API keys
+- **Owns**: All provider credentials are tenant-scoped and encrypted per-tenant
 
 ### 3. ✏️ Campaign Manager (Editor)
 - **Who**: Marketing team member within a tenant
@@ -49,59 +53,80 @@ All pages share a common layout: **Sidebar** (left) + **Header** (top) + **Conte
 ├──────────────────────┼───────┼────────┼────────┼────────┼──────┤
 │ Platform Dashboard   │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │
 │ Tenant Management    │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │
-│ Brand Management     │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ Workspace Dashboard  │  ✓    │   ✓    │   ✓    │   ✓    │  ✗   │
-│ Journey Builder      │  ✓    │   ✓    │   ✓    │   ✗    │  ✗   │
-│ Broadcast / A/B Test │  ✓    │   ✓    │   ✓    │   ✗    │  ✗   │
-│ Segment Builder      │  ✓    │   ✓    │   ✓    │   ✗    │  ✗   │
-│ Template Editor      │  ✓    │   ✓    │   ✓    │   ✗    │  ✗   │
-│ User Management      │  ✓    │   ✓    │   ✓    │   ✗    │  ✗   │
-│ Analytics            │  ✓    │   ✓    │   ✓    │   ✓    │  ✗   │
-│ Billing & Usage      │  ✓    │   ✓    │   ✗    │   ✓*   │  ✗   │
-│ Provider Settings    │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ Channel Registry     │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ Security / RBAC      │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ Encryption / Secrets │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ Rate Limiting        │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │
-│ API Keys             │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ Webhook Config       │  ✓    │   ✓    │   ✗    │   ✗    │  ✗   │
-│ DLQ Monitor          │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │
+│ Brand Management     │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant's own
+│ Workspace Dashboard  │  ✓*   │   ✓    │   ✓    │   ✓    │  ✗   │
+│ Journey Builder      │  ✗    │   ✓    │   ✓    │   ✗    │  ✗   │
+│ Broadcast / A/B Test │  ✗    │   ✓    │   ✓    │   ✗    │  ✗   │
+│ Segment Builder      │  ✗    │   ✓    │   ✓    │   ✗    │  ✗   │
+│ Template Editor      │  ✗    │   ✓    │   ✓    │   ✗    │  ✗   │
+│ User Management      │  ✗    │   ✓    │   ✓    │   ✗    │  ✗   │
+│ Analytics            │  ✓*   │   ✓    │   ✓    │   ✓    │  ✗   │
+│ Billing & Usage      │  ✓*   │   ✓    │   ✗    │   ✓**  │  ✗   │
+│ Provider Settings    │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant configures OWN providers
+│ Channel Registry     │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant's own keys
+│ Security / RBAC      │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant's own team
+│ Encryption / Secrets │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant's own secrets
+│ Rate Limiting        │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │  ← platform-level only
+│ API Keys             │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant's own
+│ Webhook Config       │  ✗    │   ✓    │   ✗    │   ✗    │  ✗   │  ← tenant's own
+│ DLQ Monitor          │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │  ← platform-level only
 │ Admin Super Panel    │  ✓    │   ✗    │   ✗    │   ✗    │  ✗   │
 │ Subscription Mgmt    │  ✗    │   ✗    │   ✗    │   ✗    │  ✓   │
 └──────────────────────┴───────┴────────┴────────┴────────┴──────┘
-* Analyst: view-only billing access
+* Super Admin views tenant dashboards/analytics/billing in read-only mode
+** Analyst: view-only billing access
+```
+
+### Ownership Summary
+```
+┌─────────────────────────────────────────────────────────────┐
+│  SUPER ADMIN (Platform)         │  TENANT ADMIN (Own Org)  │
+├─────────────────────────────────┼──────────────────────────┤
+│  • Create / suspend tenants     │  • Configure OWN Email   │
+│  • Assign plans (Starter/etc)   │    SMTP, SES providers   │
+│  • Set global rate limits       │  • Configure OWN Twilio  │
+│  • Monitor DLQ across platform  │    SMS + WhatsApp keys   │
+│  • Rotate platform encryption   │  • Configure OWN FCM,    │
+│    master key                   │    WebPush, RCS, Webhook │
+│  • View provider health (all)   │  • Manage OWN secrets    │
+│  • Platform-wide analytics      │  • Manage OWN team RBAC  │
+│                                 │  • Manage OWN brands     │
+│  ✗ Cannot touch tenant's        │  • Manage OWN API keys   │
+│    provider credentials         │  • Set up OWN webhooks   │
+│  ✗ Cannot send campaigns        │  • Create campaigns      │
+│  ✗ Cannot modify tenant data    │  • View OWN billing      │
+└─────────────────────────────────┴──────────────────────────┘
 ```
 
 ---
 
 ## App Flows
 
-### Flow 1: Super Admin — Onboard a New Tenant
+### Flow 1: Super Admin — Onboard a New Tenant (platform-level only)
 
 ```
-Login ──▶ Dashboard ──▶ Tenant List ──▶ [+ Create Tenant]
+Login ──▶ Admin Panel ──▶ Tenant List ──▶ [+ Create Tenant]
   │                                           │
   │         ┌─────────────────────────────────┘
   │         ▼
-  │    Tenant Detail
-  │    ├─ Fill name, select plan (Starter/Growth/Enterprise)
-  │    ├─ Create brands (Main Brand, EU Brand)
-  │    └─ Assign workspaces to brands
+  │    Tenant Detail (Super Admin can only set:)
+  │    ├─ Tenant name
+  │    ├─ Plan type (Starter / Growth / Enterprise)
+  │    ├─ Initial status (Active)
+  │    └─ Send invite to Tenant Admin email
   │         │
   │         ▼
-  │    Channel Registry ──▶ Configure providers per tenant
-  │    ├─ Set up SMTP / SES for Email
-  │    ├─ Set up Twilio for SMS + WhatsApp
-  │    └─ Set up FCM for Push
+  │    Rate Limiting ──▶ Plan limits auto-applied
+  │    (Starter=100/min, Growth=500/min, Enterprise=2K/min)
   │         │
   │         ▼
-  │    Encryption Settings ──▶ Verify keys are active
+  │    Admin Panel ──▶ Verify tenant appears in health table
   │         │
   │         ▼
-  │    Rate Limiting ──▶ Confirm plan rate limits applied
-  │         │
-  │         ▼
-  └──▶ Admin Panel ──▶ Verify tenant appears in health table
+  │    ⚠ Super Admin does NOT configure channels.
+  │    The Tenant Admin receives invite email and sets up
+  │    their own providers in Flow 3.
+  └──▶ Done. Tenant Admin takes over from here.
 ```
 
 ### Flow 2: Super Admin — Monitor & Resolve DLQ
