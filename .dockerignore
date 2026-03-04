@@ -23,4 +23,4 @@ dist
 !.yarn/versions
 
 # Dockerfiles
-packages/*/Dockerfile
+# packages/*/Dockerfile
