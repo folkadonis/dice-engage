@@ -1,6 +1,3 @@
-databases:
-  - name: dittofeed-db
-
 envVarGroups:
   - name: clickhouse-credentials
     envVars:
@@ -33,10 +30,10 @@ envVarGroups:
 services:
   - type: web
     name: dittofeed-lite
-    runtime: image
+    runtime: docker
+    dockerfilePath: ./packages/lite/Dockerfile
+    dockerContext: .
     autoDeploy: false
-    image:
-      url: "dittofeed/dittofeed-lite:v0.23.0"
     # Setting Node.js max-old-space-size to 412 MB.
     # This is calculated as follows: Total RAM (512 MB) - Buffer (100 MB) -
     # Memory for other processes (100 MB).
@@ -50,22 +47,8 @@ services:
         value: "true"
       - key: MAX_CACHED_WORKFLOWS
         value: "10"
-      - key: DATABASE_HOST
-        fromDatabase:
-          name: dittofeed-db
-          property: host
-      - key: DATABASE_USER
-        fromDatabase:
-          name: dittofeed-db
-          property: user
-      - key: DATABASE_PORT
-        fromDatabase:
-          name: dittofeed-db
-          property: port
-      - key: DATABASE_PASSWORD
-        fromDatabase:
-          name: dittofeed-db
-          property: password
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_kJYiLFes9V0Q@ep-fragrant-heart-aiy9uam6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
       - key: CLICKHOUSE_HOST
         fromService:
           type: pserv
@@ -85,30 +68,16 @@ services:
         value: "true"
   - type: worker
     name: admin-cli
-    runtime: image
+    runtime: docker
+    dockerfilePath: ./packages/admin-cli/Dockerfile
+    dockerContext: .
     autoDeploy: false
-    image:
-      url: "dittofeed/dittofeed-admin-cli:v0.23.0"
     dockerCommand: tail -f /dev/null
     envVars:
       - fromGroup: backend-app-env
       - fromGroup: clickhouse-credentials
-      - key: DATABASE_HOST
-        fromDatabase:
-          name: dittofeed-db
-          property: host
-      - key: DATABASE_USER
-        fromDatabase:
-          name: dittofeed-db
-          property: user
-      - key: DATABASE_PORT
-        fromDatabase:
-          name: dittofeed-db
-          property: port
-      - key: DATABASE_PASSWORD
-        fromDatabase:
-          name: dittofeed-db
-          property: password
+      - key: DATABASE_URL
+        value: postgresql://neondb_owner:npg_kJYiLFes9V0Q@ep-fragrant-heart-aiy9uam6-pooler.c-4.us-east-1.aws.neon.tech/neondb?sslmode=require
       - key: CLICKHOUSE_HOST
         fromService:
           type: pserv
@@ -143,22 +112,12 @@ services:
     - key: PORT
       value: 7233
     - key: DBNAME
-      fromDatabase:
-        name: dittofeed-db
-        property: database
+      value: neondb
     - key: DB_PORT
-      fromDatabase:
-        name: dittofeed-db
-        property: port
+      value: "5432"
     - key: POSTGRES_USER
-      fromDatabase:
-        name: dittofeed-db
-        property: user
+      value: neondb_owner
     - key: POSTGRES_PWD
-      fromDatabase:
-        name: dittofeed-db
-        property: password
+      value: npg_kJYiLFes9V0Q
     - key: POSTGRES_SEEDS
-      fromDatabase:
-        name: dittofeed-db
-        property: host
+      value: ep-fragrant-heart-aiy9uam6-pooler.c-4.us-east-1.aws.neon.tech
