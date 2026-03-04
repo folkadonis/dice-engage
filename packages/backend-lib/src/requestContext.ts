@@ -35,7 +35,7 @@ import {
   WorkspaceTypeAppEnum,
 } from "./types";
 
-const SESSION_KEY = "x-df-session";
+export const SESSION_KEY = "x-df-session";
 
 function isProfileEmailVerified(profile: OpenIdProfile): boolean {
   if (typeof profile.email_verified === "boolean") {

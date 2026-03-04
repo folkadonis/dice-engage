@@ -39,6 +39,7 @@ export class SmtpProvider implements ChannelProvider {
                 port: config.port,
                 username: config.username,
                 password: config.password,
+                type: EmailProviderType.Smtp,
                 to: params.to,
                 from: config.from ?? "noreply@diceengage.com",
                 subject: "Dice Engage Message",

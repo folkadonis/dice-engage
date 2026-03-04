@@ -1691,6 +1691,14 @@ export function journeyBranchToState(
             };
             break;
           }
+          case ChannelType.WhatsApp: {
+            messageNode = {
+              ...baseMessageNode,
+              channel: ChannelType.WhatsApp,
+              providerOverride: node.variant.providerOverride,
+            };
+            break;
+          }
           default:
             assertUnreachable(node.variant);
         }

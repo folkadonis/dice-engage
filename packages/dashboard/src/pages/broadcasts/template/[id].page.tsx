@@ -43,6 +43,7 @@ import { validate } from "uuid";
 import EmailEditor from "../../../components/messages/emailEditor";
 import SmsEditor from "../../../components/messages/smsEditor";
 import WebhookEditor from "../../../components/messages/webhookEditor";
+import WhatsAppEditor from "../../../components/messages/whatsAppEditor";
 import SubscriptionGroupAutocomplete from "../../../components/subscriptionGroupAutocomplete";
 import { addInitialStateToProps } from "../../../lib/addInitialStateToProps";
 import apiRequestHandlerFactory from "../../../lib/apiRequestHandlerFactory";
@@ -356,6 +357,16 @@ const BroadcastTemplateInner: NextPage<BroadcastTemplateProps> =
           />
         );
         break;
+      case ChannelType.WhatsApp:
+        templateEditor = (
+          <WhatsAppEditor
+            templateId={templateId}
+            hideTitle
+            hidePublisher
+            disabled={disabled}
+          />
+        );
+        break;
       default:
         assertUnreachable(channel);
     }
@@ -387,6 +398,9 @@ const BroadcastTemplateInner: NextPage<BroadcastTemplateProps> =
           </MenuItem>
           <MenuItem value={ChannelType.Webhook}>
             {CHANNEL_NAMES[ChannelType.Webhook]}
+          </MenuItem>
+          <MenuItem value={ChannelType.WhatsApp}>
+            {CHANNEL_NAMES[ChannelType.WhatsApp]}
           </MenuItem>
           <MenuItem disabled value={ChannelType.MobilePush}>
             {CHANNEL_NAMES[ChannelType.MobilePush]}

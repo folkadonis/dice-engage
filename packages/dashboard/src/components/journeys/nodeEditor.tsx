@@ -42,6 +42,7 @@ import {
   SignalWireSenderOverrideType,
   SmsProviderType,
   TwilioSenderOverrideType,
+  WhatsAppProviderType,
   WorkspaceWideEmailProviders,
 } from "isomorphic-lib/src/types";
 import { ReactNode, useCallback, useMemo } from "react";
@@ -475,6 +476,11 @@ function MessageNodeFields({
               // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
               (provider as MobilePushProviderType | null) ?? undefined;
             break;
+          case ChannelType.WhatsApp:
+            props.providerOverride =
+              // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+              (provider as WhatsAppProviderType | null) ?? undefined;
+            break;
         }
       }
     });
@@ -482,7 +488,8 @@ function MessageNodeFields({
   let providerOverrideEl: React.ReactNode;
   if (
     nodeProps.channel === ChannelType.Email ||
-    nodeProps.channel === ChannelType.Sms
+    nodeProps.channel === ChannelType.Sms ||
+    nodeProps.channel === ChannelType.WhatsApp
   ) {
     providerOverrideEl = (
       <ChannelProviderAutocomplete
@@ -516,7 +523,7 @@ function MessageNodeFields({
                     props.channel === ChannelType.Sms &&
                     props.providerOverride === SmsProviderType.Twilio &&
                     props.senderOverride?.type ===
-                      TwilioSenderOverrideType.MessageSid
+                    TwilioSenderOverrideType.MessageSid
                   ) {
                     props.senderOverride.messagingServiceSid = e.target.value;
                   }
@@ -540,7 +547,7 @@ function MessageNodeFields({
                     props.channel === ChannelType.Sms &&
                     props.providerOverride === SmsProviderType.Twilio &&
                     props.senderOverride?.type ===
-                      TwilioSenderOverrideType.PhoneNumber
+                    TwilioSenderOverrideType.PhoneNumber
                   ) {
                     props.senderOverride.phone = e.target.value;
                   }
@@ -634,7 +641,7 @@ function MessageNodeFields({
                     props.channel === ChannelType.Sms &&
                     props.providerOverride === SmsProviderType.SignalWire &&
                     props.senderOverride?.type ===
-                      SignalWireSenderOverrideType.PhoneNumber
+                    SignalWireSenderOverrideType.PhoneNumber
                   ) {
                     props.senderOverride.phone = e.target.value;
                   }
@@ -713,6 +720,7 @@ function MessageNodeFields({
           <MenuItem value={ChannelType.Email}>Email</MenuItem>
           <MenuItem value={ChannelType.Sms}>SMS</MenuItem>
           <MenuItem value={ChannelType.Webhook}>Webhook</MenuItem>
+          <MenuItem value={ChannelType.WhatsApp}>WhatsApp</MenuItem>
           <MenuItem disabled={!enableMobilePush} value={ChannelType.MobilePush}>
             Mobile Push
           </MenuItem>
@@ -985,7 +993,7 @@ function DelayNodeFields({
                 if (
                   node.data.nodeTypeProps.type !== JourneyNodeType.DelayNode ||
                   node.data.nodeTypeProps.variant.type !==
-                    DelayVariantType.UserProperty
+                  DelayVariantType.UserProperty
                 ) {
                   return;
                 }
@@ -1383,10 +1391,10 @@ export default function NodeEditor({ disabled }: { disabled?: boolean }) {
     () =>
       journeySelectedNodeId
         ? findJourneyNode(
-            journeySelectedNodeId,
-            journeyNodes,
-            journeyNodesIndex,
-          )
+          journeySelectedNodeId,
+          journeyNodes,
+          journeyNodesIndex,
+        )
         : null,
     [journeySelectedNodeId, journeyNodes, journeyNodesIndex],
   );

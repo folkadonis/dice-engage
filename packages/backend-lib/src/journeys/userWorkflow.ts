@@ -914,12 +914,19 @@ export async function userJourneyWorkflow(
             }
 
             const smsVariant: RenameKey<SmsMessageVariant, "type", "channel"> =
-              {
-                ...smsProviderOverride,
-                templateId: currentNode.variant.templateId,
-                channel: currentNode.variant.type,
-              };
+            {
+              ...smsProviderOverride,
+              templateId: currentNode.variant.templateId,
+              channel: currentNode.variant.type,
+            };
             variant = smsVariant;
+            break;
+          }
+          case ChannelType.WhatsApp: {
+            variant = {
+              ...omit(currentNode.variant, ["type"]),
+              channel: currentNode.variant.type,
+            };
             break;
           }
           case ChannelType.Webhook: {
@@ -935,6 +942,9 @@ export async function userJourneyWorkflow(
               channel: currentNode.variant.type,
             };
             break;
+          }
+          default: {
+            assertUnreachable(currentNode.variant);
           }
         }
 

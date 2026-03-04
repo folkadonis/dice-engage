@@ -33,6 +33,7 @@ import {
   EmailProviderType,
   EmailProviderTypeSchema,
   SmsProviderType,
+  WhatsAppProviderType,
 } from "isomorphic-lib/src/types";
 import { useCallback, useMemo, useState } from "react";
 
@@ -97,7 +98,7 @@ function getTomorrowAt8AM(currentDate: Date = new Date()): string {
 }
 
 interface ProviderOverrideOption {
-  id: EmailProviderTypeSchema | SmsProviderType;
+  id: EmailProviderTypeSchema | SmsProviderType | WhatsAppProviderType;
   label: string;
 }
 
@@ -152,8 +153,16 @@ export default function Configuration({
         ];
       case ChannelType.Webhook:
         return [];
+      case ChannelType.WhatsApp:
+        return [
+          { id: WhatsAppProviderType.Twilio, label: "Twilio" },
+          { id: WhatsAppProviderType.Gupshup, label: "Gupshup" },
+          { id: WhatsAppProviderType.Test, label: "Test" },
+        ];
+      case ChannelType.MobilePush:
+        return [];
       default:
-        assertUnreachable(channel);
+        assertUnreachable(channel as never);
     }
   }, [channel]);
 
@@ -162,7 +171,11 @@ export default function Configuration({
       return null;
     }
     const { message } = broadcast.config;
-    let override: EmailProviderTypeSchema | SmsProviderType | null = null;
+    let override:
+      | EmailProviderTypeSchema
+      | SmsProviderType
+      | WhatsAppProviderType
+      | null = null;
     switch (message.type) {
       case ChannelType.Email:
         override = message.providerOverride ?? null;
@@ -172,8 +185,13 @@ export default function Configuration({
         break;
       case ChannelType.Webhook:
         return null;
+      case ChannelType.WhatsApp:
+        override = message.providerOverride ?? null;
+        break;
+      case ChannelType.MobilePush:
+        return null;
       default:
-        assertUnreachable(message);
+        assertUnreachable(message as never);
     }
     return (
       availableProviderOverrides.find((option) => option.id === override) ??
@@ -496,8 +514,33 @@ export default function Configuration({
                 newMessage = newSmsMessage;
                 break;
               }
+              case ChannelType.WhatsApp: {
+                let newProviderOverride: WhatsAppProviderType | undefined;
+                if (!newValue) {
+                  newProviderOverride = undefined;
+                } else if (
+                  Object.values(WhatsAppProviderType).includes(
+                    newValue.id as WhatsAppProviderType,
+                  )
+                ) {
+                  newProviderOverride = newValue.id as WhatsAppProviderType;
+                } else {
+                  newProviderOverride = undefined;
+                }
+                newMessage = {
+                  type: ChannelType.WhatsApp,
+                  providerOverride: newProviderOverride ?? null,
+                } as BroadcastV2Config["message"];
+                break;
+              }
+              case ChannelType.MobilePush: {
+                newMessage = {
+                  type: ChannelType.MobilePush,
+                } as BroadcastV2Config["message"];
+                break;
+              }
               default:
-                assertUnreachable(message);
+                assertUnreachable(message as never);
             }
             updateBroadcast({
               config: {

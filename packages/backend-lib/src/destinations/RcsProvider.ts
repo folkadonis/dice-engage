@@ -55,7 +55,7 @@ export class RcsProvider implements ChannelProvider {
                 return err(new Error(`RCS API error: ${response.status} ${errBody}`));
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as Record<string, any>;
 
             return ok({
                 messageId: data.messageId ?? "unknown",

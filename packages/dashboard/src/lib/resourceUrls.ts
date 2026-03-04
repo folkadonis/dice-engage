@@ -12,6 +12,8 @@ function getTemplateChannelPath(channel: ChannelType): string {
       return "mobile-push";
     case ChannelType.Webhook:
       return "webhook";
+    case ChannelType.WhatsApp:
+      return "whatsapp";
   }
 }
 

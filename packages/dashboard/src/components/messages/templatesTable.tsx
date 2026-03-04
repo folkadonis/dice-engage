@@ -271,6 +271,9 @@ function NameCell({ row, getValue }: CellContext<Row, unknown>) {
       case ChannelType.Webhook:
         channelPath = "webhook";
         break;
+      case ChannelType.WhatsApp:
+        channelPath = "whatsapp";
+        break;
       default:
         assertUnreachable(definition);
     }
@@ -328,6 +331,9 @@ function ChannelCell({ row }: CellContext<Row, unknown>) {
       case ChannelType.Webhook:
         channelText = "Webhook";
         break;
+      case ChannelType.WhatsApp:
+        channelText = "WhatsApp";
+        break;
       default:
         assertUnreachable(definition);
     }
@@ -344,9 +350,8 @@ function JourneysCell({ getValue }: CellContext<Row, unknown>) {
     return <Typography variant="body2">-</Typography>;
   }
 
-  const relatedLabel = `${journeys.length} ${
-    journeys.length === 1 ? "Journey" : "Journeys"
-  }`;
+  const relatedLabel = `${journeys.length} ${journeys.length === 1 ? "Journey" : "Journeys"
+    }`;
 
   const relatedResources = journeys.map((journey) => ({
     href: `/journeys/${journey.id}`,
@@ -542,6 +547,9 @@ export default function TemplatesTable({
           case ChannelType.Webhook:
             channelPath = "webhook";
             break;
+          case ChannelType.WhatsApp:
+            channelPath = "whatsapp";
+            break;
           default:
             assertUnreachable(selectedChannel);
         }
@@ -587,6 +595,8 @@ export default function TemplatesTable({
                 return "Mobile Push";
               case ChannelType.Webhook:
                 return "Webhook";
+              case ChannelType.WhatsApp:
+                return "WhatsApp";
               default:
                 assertUnreachable(row.definition);
                 return "Unknown";
@@ -706,11 +716,11 @@ export default function TemplatesTable({
                               desc: <ArrowDownward fontSize="inherit" />,
                               // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                             }[header.column.getIsSorted() as string] ?? (
-                              <UnfoldMore
-                                fontSize="inherit"
-                                sx={{ opacity: 0.5 }}
-                              />
-                            )}
+                                <UnfoldMore
+                                  fontSize="inherit"
+                                  sx={{ opacity: 0.5 }}
+                                />
+                              )}
                           </IconButton>
                         )}
                       </Box>
@@ -890,6 +900,9 @@ export default function TemplatesTable({
               aria-label="Mobile Push"
             >
               Mobile Push
+            </ToggleButton>
+            <ToggleButton value={ChannelType.WhatsApp} aria-label="WhatsApp">
+              WhatsApp
             </ToggleButton>
           </ToggleButtonGroup>
           {selectedChannel === ChannelType.Email &&

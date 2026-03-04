@@ -2483,7 +2483,7 @@ export async function sendWhatsApp(
           });
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as Record<string, any>;
         if (data.status === "error") {
           return err({
             type: InternalEventType.MessageFailure,
@@ -2505,7 +2505,7 @@ export async function sendWhatsApp(
             to,
             provider: {
               type: SmsProviderType.Twilio,
-              sid: data.messageId ?? `gupshup-wa-${Date.now()}`,
+              sid: (data.messageId as string | undefined) ?? `gupshup-wa-${Date.now()}`,
             },
           },
         });

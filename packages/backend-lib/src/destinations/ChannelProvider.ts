@@ -10,6 +10,8 @@ export interface SendMessageParams {
     body: string;
     tags?: MessageTags;
     tenantId?: string; // Multi-tenant support
+    channel?: string;
+    provider?: string;
     config: unknown; // Provider specific configuration
 }
 

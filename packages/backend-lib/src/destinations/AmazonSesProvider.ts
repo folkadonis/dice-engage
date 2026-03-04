@@ -61,8 +61,9 @@ export class AmazonSesProvider implements ChannelProvider {
     processWebhook(params: WebhookProcessParams): ResultAsync<void, Error> {
         const { body } = params;
 
-        // In a real application, you'd validate the SES payload.
-        // This is a placeholder that relies on the existing webhook controller for parsing.
-        return submitAmazonSesEvents(body as AmazonSesEventPayload);
+        return ResultAsync.fromPromise(
+            submitAmazonSesEvents(body as AmazonSesEventPayload),
+            (e) => (e instanceof Error ? e : new Error(String(e)))
+        ).andThen((ra) => ra);
     }
 }

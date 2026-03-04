@@ -3,15 +3,21 @@ import { emailProviderLabel } from "isomorphic-lib/src/email";
 import {
   ChannelType,
   SmsProviderType,
+  WhatsAppProviderType,
   WorkspaceWideEmailProviders,
   WorkspaceWideEmailProviderType,
 } from "isomorphic-lib/src/types";
 
 function getProviderLabel(
-  provider: WorkspaceWideEmailProviders | SmsProviderType,
+  provider: WorkspaceWideEmailProviders | SmsProviderType | WhatsAppProviderType,
 ) {
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-  if (Object.values(SmsProviderType).includes(provider as SmsProviderType)) {
+  if (
+    Object.values(SmsProviderType).includes(provider as SmsProviderType) ||
+    Object.values(WhatsAppProviderType).includes(
+      provider as WhatsAppProviderType,
+    )
+  ) {
     return provider;
   }
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
@@ -19,7 +25,11 @@ function getProviderLabel(
 }
 
 export type ProviderOverrideChangeHandler = (
-  provider: WorkspaceWideEmailProviders | SmsProviderType | null,
+  provider:
+    | WorkspaceWideEmailProviders
+    | SmsProviderType
+    | WhatsAppProviderType
+    | null,
 ) => void;
 
 export default function ChannelProviderAutocomplete({
@@ -28,12 +38,20 @@ export default function ChannelProviderAutocomplete({
   disabled,
   handler,
 }: {
-  providerOverride?: WorkspaceWideEmailProviders | SmsProviderType | null;
+  providerOverride?:
+  | WorkspaceWideEmailProviders
+  | SmsProviderType
+  | WhatsAppProviderType
+  | null;
   disabled?: boolean;
   channel: ChannelType;
   handler: ProviderOverrideChangeHandler;
 }) {
-  let providerOptions: (WorkspaceWideEmailProviders | SmsProviderType)[] = [];
+  let providerOptions: (
+    | WorkspaceWideEmailProviders
+    | SmsProviderType
+    | WhatsAppProviderType
+  )[] = [];
   switch (channel) {
     case ChannelType.Email:
       providerOptions = Object.values(WorkspaceWideEmailProviderType);
@@ -47,6 +65,9 @@ export default function ChannelProviderAutocomplete({
     case ChannelType.Webhook:
       // Webhooks don't have provider overrides
       return null;
+    case ChannelType.WhatsApp:
+      providerOptions = Object.values(WhatsAppProviderType);
+      break;
   }
 
   const provider = providerOverride ?? null;
@@ -59,7 +80,13 @@ export default function ChannelProviderAutocomplete({
       getOptionLabel={getProviderLabel}
       onChange={(_event, p) =>
         // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        handler(p as WorkspaceWideEmailProviders | SmsProviderType | null)
+        handler(
+          p as
+          | WorkspaceWideEmailProviders
+          | SmsProviderType
+          | WhatsAppProviderType
+          | null,
+        )
       }
       renderInput={(params) => (
         <TextField {...params} label="Provider Override" variant="outlined" />

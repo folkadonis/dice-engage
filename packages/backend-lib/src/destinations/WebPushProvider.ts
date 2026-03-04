@@ -44,8 +44,12 @@ export class WebPushProvider implements ChannelProvider {
                 params.body
             );
 
+            const messageId = (sendResult && typeof sendResult === 'object' && 'headers' in sendResult)
+                ? (sendResult.headers as Record<string, string>)["location"]
+                : "unknown";
+
             return ok({
-                messageId: sendResult.headers?.["location"] ?? "unknown",
+                messageId: messageId ?? "unknown",
                 status: "sent",
             });
 

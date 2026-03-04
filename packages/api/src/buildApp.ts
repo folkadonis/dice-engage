@@ -28,6 +28,14 @@ declare module "@fastify/request-context" {
   export interface RequestContextData extends DFRequestContext { }
 }
 
+import { SESSION_KEY } from "backend-lib/src/requestContext";
+
+declare module "@fastify/secure-session" {
+  interface SessionData {
+    [SESSION_KEY]: boolean;
+  }
+}
+
 export type FastifyAppOpts = FastifyHttpOptions<RawServerDefault, Logger>;
 
 export function buildFastifyAppOpts(): FastifyAppOpts {

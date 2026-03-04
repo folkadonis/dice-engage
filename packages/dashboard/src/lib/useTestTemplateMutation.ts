@@ -14,6 +14,7 @@ import {
   MobilePushMessageTemplateTestRequest,
   SmsMessageTemplateTestRequest,
   WebhookMessageTemplateTestRequest,
+  WhatsAppMessageTemplateTestRequest,
 } from "isomorphic-lib/src/types";
 
 import { useAppStorePick } from "./appStore";
@@ -23,7 +24,8 @@ export type TestTemplateVariables =
   | Omit<EmailMessageTemplateTestRequest, "workspaceId">
   | Omit<SmsMessageTemplateTestRequest, "workspaceId">
   | Omit<MobilePushMessageTemplateTestRequest, "workspaceId">
-  | Omit<WebhookMessageTemplateTestRequest, "workspaceId">;
+  | Omit<WebhookMessageTemplateTestRequest, "workspaceId">
+  | Omit<WhatsAppMessageTemplateTestRequest, "workspaceId">;
 
 export type UseTestTemplateMutationOptions = Omit<
   UseMutationOptions<

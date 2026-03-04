@@ -57,7 +57,7 @@ export class GupshupWhatsappProvider implements ChannelProvider {
                 return err(new Error(`Gupshup WA API error: ${response.status} ${errBody}`));
             }
 
-            const data = await response.json();
+            const data = (await response.json()) as Record<string, any>;
             const status = data.status; // e.g., "submitted" 
             const messageId = data.messageId;
 

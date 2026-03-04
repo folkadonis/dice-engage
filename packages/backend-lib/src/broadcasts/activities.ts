@@ -355,6 +355,20 @@ export function sendMessagesFactory(sender: Sender) {
                 channel: ChannelType.Webhook,
               };
               break;
+            case ChannelType.WhatsApp:
+              messageVariant = {
+                ...baseParams,
+                ...config.message,
+                channel: ChannelType.WhatsApp,
+              };
+              break;
+            case ChannelType.MobilePush:
+              messageVariant = {
+                ...baseParams,
+                ...config.message,
+                channel: ChannelType.MobilePush,
+              };
+              break;
           }
           logger().debug({ messageVariant }, "Sending broadcast message");
           const result = await sender(messageVariant);
@@ -396,11 +410,11 @@ export function sendMessagesFactory(sender: Sender) {
           return {
             ...(isAnonymous
               ? {
-                  anonymousId: userId,
-                }
+                anonymousId: userId,
+              }
               : {
-                  userId,
-                }),
+                userId,
+              }),
             messageId,
             type: EventType.Track,
             timestamp: now.toISOString(),

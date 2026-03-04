@@ -81,7 +81,8 @@
     "sns-payload-validator": "^2.1.0",
     "twilio": "^4.18.0",
     "utility-types": "^3.10.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "web-push": "^3.6.6"
   },
   "devDependencies": {
     "@temporalio/testing": "1.14.1",
@@ -99,6 +100,7 @@
     "@types/nodemailer": "^6.4.14",
     "@types/pg": "^8",
     "@types/uuid": "^9.0.1",
+    "@types/web-push": "^3.6.3",
     "@typescript-eslint/eslint-plugin": "^5.60.0",
     "@typescript-eslint/parser": "^5.60.0",
     "deepmerge": "^4.2.2",

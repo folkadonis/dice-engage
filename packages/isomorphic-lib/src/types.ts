@@ -1257,11 +1257,19 @@ export const WebhookMessageVariant = Type.Object({
 });
 
 export type WebhookMessageVariant = Static<typeof WebhookMessageVariant>;
+export const WhatsAppMessageVariant = Type.Object({
+  type: Type.Literal(ChannelType.WhatsApp),
+  templateId: Type.String(),
+  providerOverride: Type.Optional(Type.Enum(WhatsAppProviderType)),
+});
+
+export type WhatsAppMessageVariant = Static<typeof WhatsAppMessageVariant>;
 
 export const MessageVariant = Type.Union([
   EmailMessageVariant,
   MobilePushMessageVariant,
   SmsMessageVariant,
+  WhatsAppMessageVariant,
   WebhookMessageVariant,
 ]);
 
@@ -2338,9 +2346,19 @@ export type WebhookMessageUiNodeProps = Static<
   typeof WebhookMessageUiNodeProps
 >;
 
+export const WhatsAppMessageUiNodeProps = Type.Object({
+  channel: Type.Literal(ChannelType.WhatsApp),
+  providerOverride: Type.Optional(Type.Enum(WhatsAppProviderType)),
+});
+
+export type WhatsAppMessageUiNodeProps = Static<
+  typeof WhatsAppMessageUiNodeProps
+>;
+
 export const MessageChannelUiNodeProps = Type.Union([
   EmailMessageUiNodeProps,
   SmsMessageUiNodeProps,
+  WhatsAppMessageUiNodeProps,
   MobilePushMessageUiNodeProps,
   WebhookMessageUiNodeProps,
 ]);
@@ -2363,6 +2381,7 @@ export type BaseMessageUiNodeProps = Static<typeof BaseMessageUiNodeProps>;
 export const MessageUiNodeProps = Type.Union([
   Type.Composite([BaseMessageUiNodeProps, EmailMessageUiNodeProps]),
   Type.Composite([BaseMessageUiNodeProps, SmsMessageUiNodeProps]),
+  Type.Composite([BaseMessageUiNodeProps, WhatsAppMessageUiNodeProps]),
   Type.Composite([BaseMessageUiNodeProps, MobilePushMessageUiNodeProps]),
   Type.Composite([BaseMessageUiNodeProps, WebhookMessageUiNodeProps]),
 ]);
@@ -4111,9 +4130,15 @@ export const GupshupWhatsAppSecret = Type.Object({
 });
 export type GupshupWhatsAppSecret = Static<typeof GupshupWhatsAppSecret>;
 
+export const TestWhatsAppSecret = Type.Object({
+  type: Type.Literal(WhatsAppProviderType.Test),
+});
+export type TestWhatsAppSecret = Static<typeof TestWhatsAppSecret>;
+
 export const WhatsAppProviderSecret = Type.Union([
   TwilioWhatsAppSecret,
   GupshupWhatsAppSecret,
+  TestWhatsAppSecret,
 ]);
 export type WhatsAppProviderSecret = Static<typeof WhatsAppProviderSecret>;
 
@@ -4786,11 +4811,22 @@ export type WebhookMessageTemplateTestRequest = Static<
   typeof WebhookMessageTemplateTestRequest
 >;
 
+export const WhatsAppMessageTemplateTestRequest = Type.Object({
+  ...BaseMessageTemplateTestRequest,
+  channel: Type.Literal(ChannelType.WhatsApp),
+  provider: Type.Optional(Type.Enum(WhatsAppProviderType)),
+});
+
+export type WhatsAppMessageTemplateTestRequest = Static<
+  typeof WhatsAppMessageTemplateTestRequest
+>;
+
 export const MessageTemplateTestRequest = Type.Union([
   EmailMessageTemplateTestRequest,
   SmsMessageTemplateTestRequest,
   MobilePushMessageTemplateTestRequest,
   WebhookMessageTemplateTestRequest,
+  WhatsAppMessageTemplateTestRequest,
 ]);
 
 export type MessageTemplateTestRequest = Static<
@@ -4833,6 +4869,27 @@ const BaseDeliveryItem = Type.Object({
   templateId: Type.String(),
 });
 
+export const MessageWhatsAppSuccess = Type.Composite([
+  Type.Object({
+    type: Type.Literal(ChannelType.WhatsApp),
+    provider: Type.Enum(WhatsAppProviderType),
+    to: Type.String(),
+  }),
+  WhatsappContents,
+]);
+
+export type MessageWhatsAppSuccess = Static<typeof MessageWhatsAppSuccess>;
+
+export const MessageMobilePushSuccess = Type.Composite([
+  Type.Object({
+    type: Type.Literal(ChannelType.MobilePush),
+    provider: Type.Enum(MobilePushProviderType),
+  }),
+  MobilePushTemplateResource,
+]);
+
+export type MessageMobilePushSuccess = Static<typeof MessageMobilePushSuccess>;
+
 export const SearchDeliveriesResponseItem = Type.Union([
   // TODO implement sms status
   Type.Composite([
@@ -4846,6 +4903,20 @@ export const SearchDeliveriesResponseItem = Type.Union([
     Type.Object({
       status: EmailEvent,
       variant: MessageEmailSuccess,
+    }),
+    BaseDeliveryItem,
+  ]),
+  Type.Composite([
+    Type.Object({
+      status: Type.String(),
+      variant: MessageWhatsAppSuccess,
+    }),
+    BaseDeliveryItem,
+  ]),
+  Type.Composite([
+    Type.Object({
+      status: Type.String(),
+      variant: MessageMobilePushSuccess,
     }),
     BaseDeliveryItem,
   ]),
@@ -4969,6 +5040,7 @@ export const AmazonSesSecret = Type.Object({
   accessKeyId: Type.Optional(Type.String()),
   secretAccessKey: Type.Optional(Type.String()),
   region: Type.Optional(Type.String()),
+  fromAddress: Type.Optional(Type.String()),
   endpoint: Type.Optional(Type.String()),
 });
 
@@ -4977,7 +5049,7 @@ export type AmazonSesSecret = Static<typeof AmazonSesSecret>;
 export type AmazonSesConfig = Required<
   Pick<AmazonSesSecret, "accessKeyId" | "secretAccessKey" | "region">
 > &
-  Pick<AmazonSesSecret, "endpoint">;
+  Pick<AmazonSesSecret, "endpoint" | "fromAddress">;
 
 export const AmazonSesMailFields = Type.Object({
   from: Type.String(),
@@ -6170,6 +6242,23 @@ export const BroadcastSmsMessageVariant = Type.Union([
 export type BroadcastSmsMessageVariant = Static<
   typeof BroadcastSmsMessageVariant
 >;
+export const BroadcastWhatsAppMessageVariant = Type.Object({
+  type: Type.Literal(ChannelType.WhatsApp),
+  providerOverride: Type.Optional(Type.Enum(WhatsAppProviderType)),
+});
+
+export type BroadcastWhatsAppMessageVariant = Static<
+  typeof BroadcastWhatsAppMessageVariant
+>;
+
+export const BroadcastMobilePushMessageVariant = Type.Object({
+  type: Type.Literal(ChannelType.MobilePush),
+});
+
+export type BroadcastMobilePushMessageVariant = Static<
+  typeof BroadcastMobilePushMessageVariant
+>;
+
 export const BroadcastV2Config = Type.Object({
   type: Type.Literal(BroadcastConfigTypeEnum.V2),
   // messages per second
@@ -6182,6 +6271,8 @@ export const BroadcastV2Config = Type.Object({
     // Defined separately to allow workspace member specific providers.
     BroadcastEmailMessageVariant,
     BroadcastSmsMessageVariant,
+    BroadcastWhatsAppMessageVariant,
+    BroadcastMobilePushMessageVariant,
     Type.Omit(WebhookMessageVariant, ["templateId"]),
   ]),
 });

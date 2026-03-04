@@ -48,6 +48,10 @@ const BaseRawConfigProps = {
   kafkaUserEventsReplicationFactor: Type.Optional(Type.String()),
   userEventsTopicName: Type.Optional(Type.String()),
   temporalNamespace: Type.Optional(Type.String()),
+  temporalClientCert: Type.Optional(Type.String()),
+  temporalClientKey: Type.Optional(Type.String()),
+  temporalServerNameOverride: Type.Optional(Type.String()),
+  temporalServerRootCa: Type.Optional(Type.String()),
   logConfig: Type.Optional(BoolStr),
   bootstrap: Type.Optional(BoolStr),
   bootstrapEvents: Type.Optional(BoolStr),
@@ -326,6 +330,10 @@ export type Config = Overwrite<
     temporalAddress: string;
     temporalNamespace: string;
     temporalConnectionTimeout?: number;
+    temporalClientCert?: string;
+    temporalClientKey?: string;
+    temporalServerNameOverride?: string;
+    temporalServerRootCa?: string;
     trackDashboard: boolean;
     useGlobalComputedProperties?: boolean;
     userEventsTopicName: string;
@@ -367,6 +375,7 @@ export const SECRETS = new Set<keyof Config>([
   "hyperDxApiKey",
   "databaseUrl", // Contains password
   "dashboardWriteKey", // Potentially sensitive
+  "temporalClientKey",
 ]);
 
 const defaultDbParams: Record<string, string> = {
@@ -646,6 +655,10 @@ function parseRawConfig(rawConfig: RawConfig): Config {
     temporalConnectionTimeout: rawConfig.temporalConnectionTimeout
       ? parseInt(rawConfig.temporalConnectionTimeout)
       : undefined,
+    temporalClientCert: rawConfig.temporalClientCert,
+    temporalClientKey: rawConfig.temporalClientKey,
+    temporalServerNameOverride: rawConfig.temporalServerNameOverride,
+    temporalServerRootCa: rawConfig.temporalServerRootCa,
     // deprecated
     defaultUserEventsTableVersion:
       rawConfig.defaultUserEventsTableVersion ?? "",

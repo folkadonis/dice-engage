@@ -110,6 +110,8 @@ function humanizeChannel(channel: ChannelType): string {
       return "Webhook";
     case ChannelType.MobilePush:
       return "Mobile Push";
+    case ChannelType.WhatsApp:
+      return "WhatsApp";
   }
 }
 
@@ -347,7 +349,30 @@ interface WebhookDelivery extends BaseDelivery {
   snippet?: undefined;
 }
 
-type Delivery = EmailDelivery | SmsDelivery | WebhookDelivery;
+interface WhatsAppDelivery extends BaseDelivery {
+  channel: typeof ChannelType.WhatsApp;
+  from?: undefined;
+  to: string;
+  subject?: undefined;
+  replyTo?: undefined;
+  snippet: string;
+}
+
+interface MobilePushDelivery extends BaseDelivery {
+  channel: typeof ChannelType.MobilePush;
+  from?: undefined;
+  to?: undefined;
+  subject?: undefined;
+  replyTo?: undefined;
+  snippet: string;
+}
+
+type Delivery =
+  | EmailDelivery
+  | SmsDelivery
+  | WebhookDelivery
+  | WhatsAppDelivery
+  | MobilePushDelivery;
 
 const DeliveriesCountResponseSchema = Type.Object({
   count: Type.Number(),
@@ -800,6 +825,23 @@ export function useDeliveryBodyState({
             to: variant.to,
           };
           break;
+        case ChannelType.WhatsApp:
+          delivery = {
+            ...baseDelivery,
+            channel: ChannelType.WhatsApp,
+            body: variant.body,
+            snippet: variant.body,
+            to: variant.to,
+          };
+          break;
+        case ChannelType.MobilePush:
+          delivery = {
+            ...baseDelivery,
+            channel: ChannelType.MobilePush,
+            body: variant.body ?? "",
+            snippet: variant.body ?? "",
+          };
+          break;
         case ChannelType.Webhook:
           delivery = {
             ...baseDelivery,
@@ -1061,6 +1103,14 @@ export function DeliveriesBody({
       case ChannelType.Webhook:
         previewHeader = null;
         previewBody = <WebhookPreviewBody body={previewObject.body} />;
+        break;
+      case ChannelType.WhatsApp:
+        previewHeader = null;
+        previewBody = <SmsPreviewBody body={previewObject.body} />;
+        break;
+      case ChannelType.MobilePush:
+        previewHeader = null;
+        previewBody = <SmsPreviewBody body={previewObject.body} />;
         break;
       default:
         assertUnreachable(previewObject);

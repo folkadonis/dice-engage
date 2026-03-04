@@ -59,6 +59,7 @@ import {
   RenderMessageTemplateRequest,
   RenderMessageTemplateRequestContents,
   SmsProviderType,
+  WhatsAppProviderType,
   UserPropertyAssignments,
   UserPropertyResource,
   WorkspaceMemberResource,
@@ -133,13 +134,13 @@ const BodyBox = styled(Box, {
     border: `1px solid ${theme.palette.grey[200]}`,
     ...(direction === "left"
       ? {
-          borderTopLeftRadius: theme.shape.borderRadius * 1,
-          borderBottomLeftRadius: theme.shape.borderRadius * 1,
-        }
+        borderTopLeftRadius: theme.shape.borderRadius * 1,
+        borderBottomLeftRadius: theme.shape.borderRadius * 1,
+      }
       : {
-          borderTopRightRadius: theme.shape.borderRadius * 1,
-          borderBottomRightRadius: theme.shape.borderRadius * 1,
-        }),
+        borderTopRightRadius: theme.shape.borderRadius * 1,
+        borderBottomRightRadius: theme.shape.borderRadius * 1,
+      }),
   }),
 );
 
@@ -216,11 +217,17 @@ export interface WebhookTemplateState extends BaseTemplateState {
   providerOverride: null;
 }
 
+export interface WhatsAppTemplateState extends BaseTemplateState {
+  channel: (typeof ChannelType)["WhatsApp"];
+  providerOverride: WhatsAppProviderType | null;
+}
+
 export type TemplateEditorState =
   | EmailTemplateState
   | SmsTemplateState
   | MobilePushTemplateState
-  | WebhookTemplateState;
+  | WebhookTemplateState
+  | WhatsAppTemplateState;
 
 const LOREM = new LoremIpsum({
   sentencesPerParagraph: {
@@ -935,6 +942,13 @@ export default function TemplateEditor({
         channel: state.channel,
       };
       break;
+    case ChannelType.WhatsApp:
+      submitTestDataVariables = {
+        ...submitTestDataBase,
+        channel: state.channel,
+        provider: state.providerOverride ?? undefined,
+      };
+      break;
     default:
       assertUnreachable(state);
   }
@@ -1117,6 +1131,28 @@ export default function TemplateEditor({
         break;
       case ChannelType.Webhook:
         providerAutocomplete = null;
+        break;
+      case ChannelType.WhatsApp:
+        {
+          const providerOptions = Object.values(WhatsAppProviderType).map(
+            (p) => ({
+              id: p,
+              label: p,
+            }),
+          );
+          providerAutocomplete = (
+            <ProviderOverrideSelector<WhatsAppProviderType>
+              value={state.providerOverride}
+              options={providerOptions}
+              onChange={(value) => {
+                setState((draft) => {
+                  if (draft.channel === ChannelType.WhatsApp)
+                    draft.providerOverride = value;
+                });
+              }}
+            />
+          );
+        }
         break;
       default:
         assertUnreachable(state);

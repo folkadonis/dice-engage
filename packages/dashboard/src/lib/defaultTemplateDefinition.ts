@@ -1,5 +1,6 @@
 import { defaultEmailDefinition } from "isomorphic-lib/src/email";
 import { defaultSmsDefinition } from "isomorphic-lib/src/sms";
+import { defaultWhatsappDefinition } from "isomorphic-lib/src/whatsapp";
 import { assertUnreachable } from "isomorphic-lib/src/typeAssertions";
 import {
   ChannelType,
@@ -28,6 +29,8 @@ export function getDefaultMessageTemplateDefinition(
       return DEFAULT_WEBHOOK_DEFINITION;
     case ChannelType.MobilePush:
       throw new Error("Not implemented");
+    case ChannelType.WhatsApp:
+      return defaultWhatsappDefinition();
     default:
       assertUnreachable(channelType);
   }

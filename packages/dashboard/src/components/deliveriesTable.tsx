@@ -449,21 +449,28 @@ export function DeliveriesTable({
         let subject: string | null | undefined = null;
         let replyTo: string | null | undefined = null;
         if ("variant" in item) {
-          to = item.variant.to;
           channel = item.variant.type;
           const { variant } = item;
+
+          if (
+            variant.type === ChannelType.Email ||
+            variant.type === ChannelType.Sms ||
+            variant.type === ChannelType.WhatsApp
+          ) {
+            to = variant.to;
+          }
 
           if (variant.type === ChannelType.Webhook) {
             const { request, response } = variant;
             body = JSON.stringify({ request, response }, null, 2);
           } else {
-            body = variant.body;
+            body = variant.body ?? null;
           }
 
-          if (item.variant.type === ChannelType.Email) {
-            from = item.variant.from;
-            subject = item.variant.subject;
-            replyTo = item.variant.replyTo;
+          if (variant.type === ChannelType.Email) {
+            from = variant.from;
+            subject = variant.subject;
+            replyTo = variant.replyTo;
           }
         } else {
           to = item.to;
@@ -578,15 +585,15 @@ export function DeliveriesTable({
             ...(disableUserId
               ? []
               : [
-                  {
-                    field: "userId",
-                    headerName: "User ID",
-                    renderCell: ({ row }: GridRenderCellParams<TableItem>) => {
-                      const href = `/users/${row.userId}`;
-                      return <LinkCell href={href} title={row.userId} />;
-                    },
+                {
+                  field: "userId",
+                  headerName: "User ID",
+                  renderCell: ({ row }: GridRenderCellParams<TableItem>) => {
+                    const href = `/users/${row.userId}`;
+                    return <LinkCell href={href} title={row.userId} />;
                   },
-                ]),
+                },
+              ]),
             {
               field: "to",
               headerName: "To",
@@ -604,33 +611,33 @@ export function DeliveriesTable({
             },
             ...(showSnippet
               ? [
-                  {
-                    field: "snippet",
-                    headerName: "Snippet",
-                    flex: 2,
-                    renderCell: ({ row }: GridRenderCellParams<TableItem>) => {
-                      const content =
-                        row.channel === ChannelType.Email
-                          ? row.subject
-                          : row.body;
-                      if (!content) return null;
-                      return (
-                        <Tooltip title={content}>
-                          <Box
-                            sx={{
-                              width: "100%",
-                              whiteSpace: "nowrap",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                            }}
-                          >
-                            {content}
-                          </Box>
-                        </Tooltip>
-                      );
-                    },
+                {
+                  field: "snippet",
+                  headerName: "Snippet",
+                  flex: 2,
+                  renderCell: ({ row }: GridRenderCellParams<TableItem>) => {
+                    const content =
+                      row.channel === ChannelType.Email
+                        ? row.subject
+                        : row.body;
+                    if (!content) return null;
+                    return (
+                      <Tooltip title={content}>
+                        <Box
+                          sx={{
+                            width: "100%",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {content}
+                        </Box>
+                      </Tooltip>
+                    );
                   },
-                ]
+                },
+              ]
               : []),
             {
               field: "originId",
