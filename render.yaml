@@ -31,7 +31,7 @@ services:
   - type: web
     name: dittofeed-lite
     runtime: docker
-    dockerfilePath: ./packages/lite/Dockerfile
+    dockerfilePath: packages/lite/Dockerfile
     dockerContext: .
     autoDeploy: false
     # Setting Node.js max-old-space-size to 412 MB.
@@ -69,7 +69,7 @@ services:
   - type: worker
     name: admin-cli
     runtime: docker
-    dockerfilePath: ./packages/admin-cli/Dockerfile
+    dockerfilePath: packages/admin-cli/Dockerfile
     dockerContext: .
     autoDeploy: false
     dockerCommand: tail -f /dev/null
@@ -93,7 +93,7 @@ services:
     env: docker
     plan: standard
     autoDeploy: false
-    dockerfilePath: ./render/clickhouse/Dockerfile
+    dockerfilePath: render/clickhouse/Dockerfile
     dockerContext: .
     envVars:
       - fromGroup: backend-app-env
@@ -106,7 +106,8 @@ services:
     name: temporal
     autoDeploy: false
     env: docker
-    dockerfilePath: ./render/temporal/server/auto-setup/Dockerfile
+    dockerfilePath: render/temporal/server/auto-setup/Dockerfile
+    dockerContext: .
     envVars:
     - fromGroup: temporal-shared
     - key: PORT
