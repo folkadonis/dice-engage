@@ -90,7 +90,7 @@ services:
           property: host
   - type: pserv
     name: dittofeed-ch
-    env: docker
+    runtime: docker
     plan: standard
     autoDeploy: false
     dockerfilePath: render/clickhouse/Dockerfile
@@ -104,8 +104,8 @@ services:
       sizeGB: 10
   - type: pserv
     name: temporal
+    runtime: docker
     autoDeploy: false
-    env: docker
     dockerfilePath: render/temporal/server/auto-setup/Dockerfile
     dockerContext: .
     envVars:
